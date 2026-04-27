@@ -1,5 +1,5 @@
-from chroma_retriever import retrieve_chroma
-# from faiss_retiever import retrieve
+from retriever.chroma import retrieve_chroma
+# from retriever.faissy import retrieve
 from generator import generate_answer
 
 def rag_pipeline(query):

@@ -1,7 +1,7 @@
 import requests
 
-LLM_URL = "http://ollama-server/api/generate"
-MODEL = ["llama3.1:8b-instruct-"q3_K_L", "phi", "llama3.1:8b", deepseek-r1:7b", "qwen3:30b-instruct", "qwen3:4b-instruct"]
+LLM_URL = "http://10.123.0.218:8080/api/generate"
+MODEL = ["llama3.1:8b-instruct-q3_K_L", "phi", "llama3.1:8b", "deepseek-r1:7b", "qwen3:30b-instruct", "qwen3:4b-instruct"]
 
 
 def generate_answer(query, context):

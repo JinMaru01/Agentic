@@ -1,4 +1,4 @@
-from pipline import rag_pipeline
+from pipeline import rag_pipeline
 
 print("=== RAG Terminal Chat ===")
 print("Type 'exit' or 'quit' to stop\n")

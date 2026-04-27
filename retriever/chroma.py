@@ -1,5 +1,5 @@
 import chromadb
-from documents import documents
+from documents.documents import documents
 
 client = chromadb.Client()
 collection = client.create_collection("rag_demo")
