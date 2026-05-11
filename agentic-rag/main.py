@@ -14,7 +14,10 @@ while True:
         continue
 
     try:
-        response = agentic_rag_pipeline(query)
+        results = agentic_rag_pipeline(query)
+        contexts = results["contexts"]
+        response = results["response"]
+        print("\nGenerated contexts:\n", contexts)
         print("\nGenerated response:\n", response)
         print("-" * 50)
     except Exception as e:

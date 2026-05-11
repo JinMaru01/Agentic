@@ -9,9 +9,24 @@ collection.add(
     ids=[str(i) for i in range(len(documents))]
 )
 
-def retrieve_chroma(query, k=2):
+def retrieve_chroma(query, k=5, threshold=1):
+
     results = collection.query(
         query_texts=[query],
         n_results=k
     )
-    return results["documents"][0]
+
+    documents = results["documents"][0]
+    distances = results["distances"][0]
+
+    filtered_docs = []
+
+    for doc, distance in zip(documents, distances):
+
+        if distance <= threshold:
+            filtered_docs.append({
+                "document": doc,
+                "distance": distance
+            })
+
+    return filtered_docs

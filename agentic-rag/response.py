@@ -40,3 +40,72 @@ Answer:
     )
 
     return response.json().get("response", "")
+
+
+def generate_critique(query, context, answer):
+    context_text = "\n".join(context)
+
+    prompt = f"""
+You are an expert evaluator.
+
+Evaluate whether the answer is:
+- factually supported by the context
+- complete
+- accurate
+- free from hallucination
+
+Context:
+{context_text}
+
+Question:
+{query}
+
+Answer:
+{answer}
+
+If issues exist, explain them clearly.
+If answer is good, say: VALID
+"""
+
+    response = requests.post(
+        LLM_URL,
+        json={
+            "model": MODEL_CONFIG["light"],
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+
+    return response.json()["response"]
+
+def refine_answer(query, context, answer, critique):
+    context_text = "\n".join(context)
+
+    prompt = f"""
+You are improving a RAG answer.
+
+Original Context:
+{context_text}
+
+Question:
+{query}
+
+Original Answer:
+{answer}
+
+Critique:
+{critique}
+
+Generate an improved answer using ONLY the context.
+"""
+
+    response = requests.post(
+        LLM_URL,
+        json={
+            "model": MODEL_CONFIG["default"],
+            "prompt": prompt,
+            "stream": False
+        }
+    )
+
+    return response.json()["response"]
