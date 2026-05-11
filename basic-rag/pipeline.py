@@ -1,6 +1,6 @@
 from retriever.chroma import retrieve_chroma
 # from retriever.faissy import retrieve
-from generator import generate_answer
+from .generator import generate_answer
 
 def rag_pipeline(query):
     print("Origin query: ", query)

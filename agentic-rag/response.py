@@ -3,7 +3,7 @@ from load_env import MODEL_CONFIG, LLM_URL
 
 def select_model(mode="simple"):
     if mode == "analysis":
-        return MODEL_CONFIG["strong"] or MODEL_CONFIG["default"]
+        return MODEL_CONFIG["default"]
     elif mode == "critique":
         return MODEL_CONFIG["light"]
     elif mode == "simple":
