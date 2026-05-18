@@ -955,7 +955,7 @@
 - Bona (id: devops) — DevOps Engineer
 
 Respond ONLY with valid JSON (no markdown fences, no preamble, no chain-of-thought text):
-{"announcement":"Your kickoff message to the team (2-3 sentences, energetic and specific to the project)","tasks":[{"assignee":"pm|backend|frontend|ai|devops","title":"Short task title","description":"2-sentence concrete description of what to build or do","priority":"high|medium|low"}]}
+{"announcement":"Your kickoff message to the team (energetic and specific to the project)","tasks":[{"assignee":"pm|backend|frontend|ai|devops","title":"Short task title","description":"concrete description of what to build or do","priority":"high|medium|low"}]}
 Include exactly one task per member (all 5 members).`;
 
         const lead = await ollamaChat(leadSys, `Project: ${proj}`);
@@ -990,8 +990,8 @@ You report to Darachin Kong (CTO). Project: "${proj}"
 Your task: "${task.title}" — ${task.description}
 
 Respond ONLY with valid JSON (no markdown fences, no preamble):
-{"statusUpdate":"Your 2-3 sentence response to the CTO: confirm the task, state your concrete plan, and mention one specific technical decision","collaborations":[{"toAgent":"pm|backend|frontend|ai|devops","message":"A specific coordination question or dependency note"}]}
-Include 1-2 collaborations only where there is a real cross-team dependency.`;
+{"statusUpdate":"Your response to the CTO: confirm the task, state your concrete plan, and mention one specific technical decision","collaborations":[{"toAgent":"pm|backend|frontend|ai|devops","message":"A specific coordination question or dependency note"}]}
+Include collaborations only where there is a real cross-team dependency.`;
 
           const mr = await ollamaChat(mSys, `Task: ${task.title}\n${task.description}`);
           responses[mid] = mr;
@@ -1015,7 +1015,7 @@ Include 1-2 collaborations only where there is a real cross-team dependency.`;
 
         const sumSys = `You are Darachin Kong, CTO. Your team just reported back on their tasks.
 Respond ONLY with valid JSON (no markdown fences, no preamble):
-{"summary":"2-sentence wrap-up to the team: acknowledge the solid plans and state the very next concrete step (first sprint, sync call, or milestone deadline)."}`;
+{"summary":"wrap-up to the team: acknowledge the solid plans and state the very next concrete step (first sprint, sync call, or milestone deadline)."}`;
 
         const teamSummary = Object.entries(responses)
           .map(([id, r]) => `${byId[id]?.name}: ${r.statusUpdate}`).join("\n");
