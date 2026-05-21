@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Team · Codebase Mode</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0d0f;--bg2:#141618;--bg3:#1a1d22;--bg4:#21252b;
+  --border:#242830;--border2:#2e3340;
+  --text:#dde1ec;--text2:#8990a8;--text3:#4d5268;
+  --accent:#7B72E9;--green:#1A9E6E;--blue:#2F7FCC;
+  --pink:#C94F78;--amber:#B07015;--coral:#C85228;--red:#D94040;
+  --teal:#0D7A62;--purple:#5B3DB8;
+  --r:7px;--rl:11px;
+  --tool-read:#2F7FCC22;--tool-write:#1A9E6E22;--tool-edit:#B0701522;
+  --tool-bash:#C8522822;--tool-grep:#5B3DB822;--tool-glob:#C94F7822;
+}
+body{background:var(--bg);color:var(--text);font-family:'Cascadia Code','Fira Code',Consolas,'Segoe UI',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:12px}
+
+/* ── Header ── */
+header{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 18px;display:flex;align-items:center;gap:10px;font-size:11px}
+.logo{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#3B2F90);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+header h1{font-size:13px;font-weight:600;font-family:'Segoe UI',sans-serif}
+header small{color:var(--text3);font-family:'Segoe UI',sans-serif}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+#srv-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
+#srv-dot.ok{background:var(--green)}
+#srv-dot.fail{background:var(--red)}
+#srv-lbl{font-size:11px;color:var(--text2);font-family:'Segoe UI',sans-serif}
+.hbtn{font-size:11px;padding:3px 10px;border-radius:16px;border:1px solid var(--border2);color:var(--text2);background:transparent;cursor:pointer;transition:all .15s;font-family:'Segoe UI',sans-serif}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn.active{border-color:var(--green);color:var(--green);background:var(--green)11}
+
+/* ── Config bar ── */
+#cfg{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:'Segoe UI',sans-serif}
+#cfg label{font-size:10px;color:var(--text3)}
+#cfg input,#cfg select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:5px;padding:3px 7px;font-size:11px;outline:none;transition:border-color .15s;font-family:inherit}
+#cfg input:focus,#cfg select:focus{border-color:var(--accent)}
+.csep{width:1px;height:16px;background:var(--border2);flex-shrink:0}
+
+/* ── Task bar ── */
+#tbar{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 18px;display:flex;gap:8px;align-items:center}
+.mode-btn{font-size:11px;padding:4px 12px;border-radius:5px;border:1px solid var(--border2);cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;font-family:'Segoe UI',sans-serif;font-weight:500;flex-shrink:0}
+.mode-btn.sel{background:var(--accent)22;border-color:var(--accent);color:var(--accent)}
+#agent-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:5px;padding:5px 8px;font-size:11px;outline:none;cursor:pointer;font-family:'Segoe UI',sans-serif}
+#task-inp{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:5px;padding:6px 10px;font-size:12px;outline:none;font-family:'Segoe UI',sans-serif}
+#task-inp:focus{border-color:var(--accent)}
+#task-inp::placeholder{color:var(--text3)}
+.btn{padding:6px 14px;border-radius:5px;border:none;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Segoe UI',sans-serif}
+.btn-p{background:var(--accent);color:#fff}
+.btn-p:hover{background:#6660d0}
+.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-g{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.btn-g:hover{color:var(--text)}
+
+/* ── 3-col main ── */
+#main{flex:1;display:grid;grid-template-columns:220px 1fr 300px;min-height:0}
+
+/* ── Agents panel ── */
+#agents-panel{border-right:1px solid var(--border);overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:var(--bg)}
+.plbl{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;padding-bottom:4px;font-family:'Segoe UI',sans-serif}
+.agcard{background:var(--bg2);border:1px solid var(--border);border-left:3px solid transparent;border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:all .15s}
+.agcard:hover{border-color:var(--border2)}
+.agcard.sel{background:var(--bg3)}
+.agcard.running{border-left-width:3px;animation:pulse-border 1.5s infinite}
+.agcard.done{border-left-width:3px}
+@keyframes pulse-border{0%,100%{opacity:1}50%{opacity:.5}}
+.agcard-head{display:flex;align-items:center;gap:7px}
+.agav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
+.agname{font-size:11px;font-weight:600;font-family:'Segoe UI',sans-serif}
+.agrole{font-size:9px;color:var(--text2);font-family:'Segoe UI',sans-serif}
+.agstatus{margin-left:auto;display:flex;align-items:center;gap:3px;flex-shrink:0}
+.sdt{width:5px;height:5px;border-radius:50%;background:var(--text3)}
+.sdt.thinking{background:var(--blue);animation:pulse 1s infinite}
+.sdt.active{background:var(--accent)}
+.sdt.done{background:var(--green)}
+.slb{font-size:9px;color:var(--text3);font-family:'Segoe UI',sans-serif}
+.agdesc{font-size:9px;color:var(--text3);margin-top:4px;line-height:1.4;display:none;font-family:'Segoe UI',sans-serif}
+.agcard.sel .agdesc{display:block}
+
+/* ── Activity feed ── */
+#feed{overflow-y:auto;padding:10px 14px;background:var(--bg);display:flex;flex-direction:column;gap:0;border-right:1px solid var(--border)}
+.fempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);padding:40px 0;font-family:'Segoe UI',sans-serif}
+.fempty svg{opacity:.15}
+.fempty p{font-size:11px;text-align:center;max-width:220px;line-height:1.5}
+
+/* messages */
+.fe-item{border-bottom:1px solid var(--border);padding:8px 0;animation:fi .18s ease}
+.fe-item:last-child{border-bottom:none}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+/* agent text response */
+.fe-response{display:flex;gap:8px}
+.fe-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;flex-shrink:0;margin-top:1px}
+.fe-body{flex:1;min-width:0}
+.fe-head{display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap}
+.fe-who{font-size:10px;font-weight:700;font-family:'Segoe UI',sans-serif}
+.fe-tag{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600}
+.fe-time{font-size:9px;color:var(--text3);margin-left:auto;font-family:'Segoe UI',sans-serif}
+.fe-text{font-size:11px;line-height:1.6;color:var(--text);font-family:'Segoe UI',sans-serif;word-break:break-word}
+.tag-plan{background:#7B72E922;color:var(--accent)}
+.tag-kick{background:#7B72E922;color:var(--accent)}
+.tag-resp{background:#1A9E6E22;color:var(--green)}
+.tag-done{background:#1A9E6E22;color:var(--green)}
+.tag-err{background:#D9404022;color:var(--red)}
+.tag-team{background:#B0701522;color:#FAC775}
+
+/* tool call block */
+.fe-tool{margin:2px 0;border-radius:5px;overflow:hidden;font-size:10px}
+.fe-tool-head{display:flex;align-items:center;gap:6px;padding:5px 8px;cursor:pointer;user-select:none}
+.fe-tool-head:hover{filter:brightness(1.1)}
+.tool-icon{font-size:11px;flex-shrink:0}
+.tool-name{font-weight:700;font-family:'Segoe UI',sans-serif;font-size:10px}
+.tool-arg{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:10px}
+.tool-arrow{margin-left:auto;font-size:10px;color:var(--text3);flex-shrink:0}
+.fe-tool-body{display:none;padding:5px 8px 7px;border-top:1px solid rgba(255,255,255,.05)}
+.fe-tool-body.open{display:block}
+.fe-tool-body pre{font-size:10px;color:var(--text2);line-height:1.4;white-space:pre-wrap;word-break:break-word;font-family:'Cascadia Code',Consolas,monospace;max-height:150px;overflow-y:auto}
+.tool-read  {background:var(--tool-read);  border-left:2px solid var(--blue)}
+.tool-write {background:var(--tool-write); border-left:2px solid var(--green)}
+.tool-edit  {background:var(--tool-edit);  border-left:2px solid var(--amber)}
+.tool-bash  {background:var(--tool-bash);  border-left:2px solid var(--coral)}
+.tool-glob  {background:var(--tool-glob);  border-left:2px solid var(--pink)}
+.tool-grep  {background:var(--tool-grep);  border-left:2px solid var(--purple)}
+.tool-todo  {background:#7B72E922;         border-left:2px solid var(--accent)}
+
+/* system events */
+.fe-system{padding:4px 0;display:flex;align-items:center;gap:6px;color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif}
+.fe-system .dot{width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* typing indicator */
+.fe-typing{display:flex;align-items:center;gap:5px;padding:6px 0;color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif}
+.db{display:flex;gap:2px}
+.db span{width:4px;height:4px;border-radius:50%;background:var(--text3);animation:b .8s infinite}
+.db span:nth-child(2){animation-delay:.12s}
+.db span:nth-child(3){animation-delay:.24s}
+@keyframes b{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* ── Files panel ── */
+#files-panel{overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+.fpanel-hd{flex-shrink:0;padding:8px 11px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:6px;font-family:'Segoe UI',sans-serif}
+.fpanel-hd svg{opacity:.5;flex-shrink:0}
+.fpanel-hd span{font-size:10px;font-weight:700;color:var(--text2)}
+#files-count{font-size:9px;color:var(--text3)}
+#files-inner{overflow-y:auto;flex:1;padding:8px}
+
+.file-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden;animation:fi .2s ease}
+.fc-head{display:flex;align-items:center;gap:6px;padding:7px 9px;cursor:pointer;user-select:none}
+.fc-head:hover{background:var(--bg3)}
+.fc-action{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0;font-family:'Segoe UI',sans-serif}
+.fa-read{background:#2F7FCC22;color:#60aadc}
+.fa-write{background:#1A9E6E22;color:#5DCAA5}
+.fa-edit{background:#B0701522;color:#FAC775}
+.fc-path{font-size:10px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-agent{font-size:9px;color:var(--text3);flex-shrink:0;font-family:'Segoe UI',sans-serif}
+.fc-arrow{font-size:10px;color:var(--text3);flex-shrink:0}
+.fc-body{display:none;padding:0 9px 8px;font-size:10px;background:var(--bg);border-top:1px solid var(--border)}
+.fc-body.open{display:block}
+.fc-body pre{font-size:10px;color:var(--text2);line-height:1.4;white-space:pre-wrap;word-break:break-word;font-family:'Cascadia Code',Consolas,monospace;padding:6px 0;max-height:200px;overflow-y:auto}
+.fc-acts{display:flex;gap:5px;padding:6px 0 2px}
+.fca{font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);color:var(--text2);background:transparent;cursor:pointer;transition:all .15s;font-family:'Segoe UI',sans-serif}
+.fca:hover{color:var(--text)}
+.fca.ok{color:var(--green);border-color:var(--green)}
+
+.todos-section{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.todos-section h4{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;font-family:'Segoe UI',sans-serif}
+.todo-item{display:flex;align-items:flex-start;gap:5px;padding:3px 0;font-size:10px;font-family:'Segoe UI',sans-serif}
+.todo-ico{flex-shrink:0;margin-top:1px}
+.todo-text{color:var(--text2);flex:1}
+.todo-pri{font-size:8px;padding:1px 4px;border-radius:2px;flex-shrink:0}
+.tp-high{background:#D9404022;color:var(--red)}
+.tp-medium{background:#B0701522;color:#FAC775}
+.tp-low{background:#1A9E6E22;color:var(--green)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🤖</div>
+  <div>
+    <h1>Agent Team <small>· Codebase Mode</small></h1>
+  </div>
+  <div class="hright">
+    <div id="srv-dot"></div>
+    <span id="srv-lbl">Disconnected</span>
+    <button class="hbtn" onclick="checkServer()">Reconnect</button>
+    <button class="hbtn" id="stopBtn" onclick="stopRun()" style="display:none;border-color:var(--red);color:var(--red)">■ Stop</button>
+  </div>
+</header>
+
+<div id="cfg">
+  <label>Server</label>
+  <input id="srvUrl" value="http://localhost:7788" style="width:200px" onchange="checkServer()">
+  <div class="csep"></div>
+  <label>Model</label>
+  <input id="cfgModel" value="qwen3:30b" style="width:155px">
+  <button class="hbtn" onclick="fetchModels()">↻</button>
+  <select id="modelSel" style="display:none;width:180px" onchange="document.getElementById('cfgModel').value=this.value"></select>
+  <div class="csep"></div>
+  <label>Workspace</label>
+  <input id="cfgWs" style="width:220px" placeholder="d:/development/wingbank-ade">
+  <button class="hbtn" onclick="applyConfig()">Apply</button>
+</div>
+
+<div id="tbar">
+  <button class="mode-btn sel" id="modeTeam" onclick="setMode('team')">Team</button>
+  <button class="mode-btn" id="modeSingle" onclick="setMode('single')">Single Agent</button>
+  <select id="agent-sel" style="display:none">
+    <option value="">— select agent —</option>
+  </select>
+  <input id="task-inp" type="text" placeholder="Describe the task — e.g. Fix bug B1: RunStatus.ERROR == RunStatus.INPUT == 0 in bssemodule.py">
+  <button class="btn btn-p" id="runBtn" onclick="run()">Run ↗</button>
+  <button class="btn btn-g" id="clearBtn" onclick="clearAll()">Clear</button>
+</div>
+
+<div id="main">
+  <!-- Agents panel -->
+  <div id="agents-panel">
+    <div class="plbl">Agents</div>
+    <div id="agents-list" style="color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif;padding:4px 0">Loading…</div>
+  </div>
+
+  <!-- Activity feed -->
+  <div id="feed">
+    <div class="fempty" id="fempty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <p>Assign a task to an agent or the whole team. Agents will read, edit, and run code against your workspace.</p>
+    </div>
+  </div>
+
+  <!-- Files panel -->
+  <div id="files-panel">
+    <div class="fpanel-hd">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>Files</span>
+      <span id="files-count">0 accessed</span>
+    </div>
+    <div id="files-inner">
+      <div style="color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif;padding:8px 0">Files read or written by agents appear here.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const getSrvUrl  = () => document.getElementById("srvUrl").value.replace(/\/$/,"");
+const getModel   = () => document.getElementById("cfgModel").value.trim();
+const getWs      = () => document.getElementById("cfgWs").value.trim();
+
+let mode = "team";
+let activeES = null;
+let running = false;
+let agentDefs = {};
+let fileLog = {};   // path → {action, agent, content}
+let todosData = [];
+
+// ══════════════════════════════════════════════════════════
+// SERVER COMMS
+// ══════════════════════════════════════════════════════════
+async function apiFetch(path, opts={}) {
+  const r = await fetch(getSrvUrl() + path, opts);
+  return r.json();
+}
+
+async function checkServer() {
+  const dot = document.getElementById("srv-dot");
+  const lbl = document.getElementById("srv-lbl");
+  dot.className = ""; lbl.textContent = "Checking…";
+  try {
+    const d = await apiFetch("/api/health");
+    if (d.status === "ok") {
+      dot.className = "ok";
+      lbl.textContent = `Connected · ${d.models?.length || 0} models`;
+      // Pre-fill workspace from server if not set
+      const cfg = await apiFetch("/api/config");
+      if (!getWs()) document.getElementById("cfgWs").value = cfg.workspace || "";
+      document.getElementById("cfgModel").value = cfg.model || "qwen3:30b";
+      loadAgents();
+    } else {
+      dot.className = "fail";
+      lbl.textContent = `Ollama error: ${d.message || "unknown"}`;
+    }
+  } catch(e) {
+    dot.className = "fail";
+    lbl.textContent = "Server not running — start agent_team_server.py";
+  }
+}
+
+async function applyConfig() {
+  const ws    = getWs();
+  const model = getModel();
+  try {
+    await apiFetch("/api/config", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({workspace:ws, model})
+    });
+    addSys("Config applied.");
+    loadAgents();
+  } catch(e) {
+    addSys("Config update failed: " + e.message);
+  }
+}
+
+async function fetchModels() {
+  try {
+    const d = await apiFetch("/api/ollama/models");
+    const sel = document.getElementById("modelSel");
+    sel.innerHTML = "";
+    (d.models||[]).forEach(m => {
+      const o = document.createElement("option");
+      o.value = m.name; o.textContent = m.name;
+      if (m.name === getModel()) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.style.display = "block";
+  } catch(e) { alert("Failed to fetch models"); }
+}
+
+// ══════════════════════════════════════════════════════════
+// AGENTS
+// ══════════════════════════════════════════════════════════
+const AGENT_COLORS = [
+  "#7B72E9","#1A9E6E","#2F7FCC","#C94F78","#B07015","#C85228","#5B3DB8","#0D7A62","#8B3A6E","#3A7D44"
+];
+function agentColor(id) {
+  const keys = Object.keys(agentDefs);
+  const idx = keys.indexOf(id) % AGENT_COLORS.length;
+  return AGENT_COLORS[Math.max(0, idx)];
+}
+function agentInitials(id) {
+  return id.split("-").map(w=>w[0]?.toUpperCase()||"").join("").slice(0,2);
+}
+
+async function loadAgents() {
+  try {
+    agentDefs = await apiFetch("/api/agents");
+    renderAgents();
+    renderAgentSelect();
+  } catch(e) {
+    document.getElementById("agents-list").textContent = "Could not load agents — check server and agents_dir config.";
+  }
+}
+
+function renderAgents() {
+  const list = document.getElementById("agents-list");
+  list.innerHTML = "";
+  if (!Object.keys(agentDefs).length) {
+    list.innerHTML = `<div style="color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif">No agents found.<br>Check agents_dir config.</div>`;
+    return;
+  }
+  Object.values(agentDefs).forEach(ag => {
+    const c = agentColor(ag.id);
+    const el = document.createElement("div");
+    el.className = "agcard"; el.id = `agcard-${ag.id}`;
+    el.style.borderLeftColor = c;
+    el.onclick = () => {
+      document.querySelectorAll(".agcard").forEach(x=>x.classList.remove("sel"));
+      el.classList.add("sel");
+      if (mode === "single") document.getElementById("agent-sel").value = ag.id;
+    };
+    el.innerHTML = `
+      <div class="agcard-head">
+        <div class="agav" style="background:${c}22;color:${c}">${agentInitials(ag.id)}</div>
+        <div>
+          <div class="agname">${ag.name}</div>
+        </div>
+        <div class="agstatus">
+          <div class="sdt" id="sdt-${ag.id}"></div>
+          <span class="slb" id="slb-${ag.id}">Standby</span>
+        </div>
+      </div>
+      <div class="agdesc">${ag.description?.slice(0,120)||""}</div>`;
+    list.appendChild(el);
+  });
+}
+
+function renderAgentSelect() {
+  const sel = document.getElementById("agent-sel");
+  sel.innerHTML = '<option value="">— select agent —</option>';
+  Object.values(agentDefs).forEach(ag => {
+    const o = document.createElement("option");
+    o.value = ag.id; o.textContent = ag.name;
+    sel.appendChild(o);
+  });
+}
+
+function setAgentStatus(id, status) {
+  const dot = document.getElementById(`sdt-${id}`);
+  const lbl = document.getElementById(`slb-${id}`);
+  const card = document.getElementById(`agcard-${id}`);
+  const map = {idle:"Standby",thinking:"Thinking…",active:"Active",done:"Done",error:"Error"};
+  if (dot) dot.className = `sdt ${status}`;
+  if (lbl) lbl.textContent = map[status] || status;
+  if (card) {
+    card.classList.remove("running","done");
+    if (status==="thinking"||status==="active") card.classList.add("running");
+    if (status==="done") card.classList.add("done");
+    if (status==="done"||status==="error") {
+      card.style.borderLeftColor = status==="done" ? "var(--green)" : "var(--red)";
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// MODE
+// ══════════════════════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.getElementById("modeTeam").classList.toggle("sel", m==="team");
+  document.getElementById("modeSingle").classList.toggle("sel", m==="single");
+  document.getElementById("agent-sel").style.display = m==="single" ? "block" : "none";
+  document.getElementById("task-inp").placeholder = m==="team"
+    ? "High-level task for the team — team-lead will delegate — e.g. Fix bug B1: RunStatus.ERROR == RunStatus.INPUT == 0"
+    : "Specific task for selected agent — e.g. Read bssemodule.py and fix the RunStatus enum collision";
+}
+
+// ══════════════════════════════════════════════════════════
+// RUN
+// ══════════════════════════════════════════════════════════
+function run() {
+  const task = document.getElementById("task-inp").value.trim();
+  if (!task || running) return;
+  if (mode === "single") {
+    const agentId = document.getElementById("agent-sel").value;
+    if (!agentId) { alert("Select an agent first."); return; }
+    runSingle(agentId, task);
+  } else {
+    runTeam(task);
+  }
+}
+
+function runSingle(agentId, task) {
+  const url = `${getSrvUrl()}/api/run?agent=${encodeURIComponent(agentId)}&task=${encodeURIComponent(task)}&model=${encodeURIComponent(getModel())}`;
+  startSSE(url);
+}
+
+function runTeam(task) {
+  const url = `${getSrvUrl()}/api/team?task=${encodeURIComponent(task)}&model=${encodeURIComponent(getModel())}`;
+  startSSE(url);
+}
+
+function startSSE(url) {
+  stopRun();
+  clearFeed();
+  resetAgentStatuses();
+  running = true;
+  document.getElementById("runBtn").disabled = true;
+  document.getElementById("runBtn").textContent = "Running…";
+  document.getElementById("stopBtn").style.display = "block";
+
+  activeES = new EventSource(url);
+  activeES.onmessage = (e) => handleEvent(JSON.parse(e.data));
+  activeES.onerror = () => {
+    addSys("Stream closed.");
+    finishRun();
+  };
+}
+
+function stopRun() {
+  if (activeES) { activeES.close(); activeES = null; }
+  finishRun();
+}
+
+function finishRun() {
+  running = false;
+  document.getElementById("runBtn").disabled = false;
+  document.getElementById("runBtn").textContent = "Run ↗";
+  document.getElementById("stopBtn").style.display = "none";
+  removeTyping();
+}
+
+function resetAgentStatuses() {
+  Object.keys(agentDefs).forEach(id => {
+    setAgentStatus(id, "idle");
+    const card = document.getElementById(`agcard-${id}`);
+    if (card) {
+      card.style.borderLeftColor = agentColor(id);
+      card.classList.remove("running","done");
+    }
+  });
+  fileLog = {};
+  todosData = [];
+  renderFiles();
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT HANDLING
+// ══════════════════════════════════════════════════════════
+function handleEvent(d) {
+  removeTyping();
+  const type = d.type;
+
+  if (type === "agent_start") {
+    setAgentStatus(d.agent, "thinking");
+    addTyping(agentDefs[d.agent]?.name || d.agent);
+
+  } else if (type === "agent_response") {
+    setAgentStatus(d.agent, "active");
+    addResponse(d.agent, d.content, "resp");
+
+  } else if (type === "agent_done") {
+    setAgentStatus(d.agent, "done");
+    if (d.todos?.length) { todosData = d.todos; renderTodos(); }
+    addSys(`✓ ${agentDefs[d.agent]?.name || d.agent} finished`);
+
+  } else if (type === "tool_call") {
+    setAgentStatus(d.agent, "thinking");
+    addToolCall(d.agent, d.tool, d.args);
+    showTyping(agentDefs[d.agent]?.name || d.agent);
+
+  } else if (type === "tool_result") {
+    addToolResult(d.agent, d.tool, d.args, d.result, d.full);
+    trackFile(d.agent, d.tool, d.args, d.full);
+
+  } else if (type === "team_start") {
+    addSys(`🚀 Team task: ${d.task}`);
+
+  } else if (type === "team_plan") {
+    const plan = d.plan;
+    addResponse("team-lead", `**Assessment:** ${plan.assessment}\n\n**Assignments:**\n${(plan.assignments||[]).map((a,i)=>`${i+1}. **${a.agent}**: ${a.task}`).join("\n")}`, "plan");
+
+  } else if (type === "team_dispatch") {
+    addSys(`→ Dispatching ${d.agent} (step ${d.step})`);
+    setAgentStatus(d.agent, "thinking");
+    addTyping(agentDefs[d.agent]?.name || d.agent);
+
+  } else if (type === "team_done") {
+    addSys("✓ Team task complete.");
+    if (d.files_touched?.length) {
+      addSys(`Files accessed: ${d.files_touched.length}`);
+    }
+    finishRun();
+
+  } else if (type === "team_error" || type === "error") {
+    addError(d.message || d.agent);
+    finishRun();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// FEED RENDERING
+// ══════════════════════════════════════════════════════════
+const feed = document.getElementById("feed");
+
+function clearFeed() {
+  feed.querySelectorAll(".fe-item,.fe-typing,.fe-system,.fe-response,.fe-tool").forEach(x=>x.remove());
+  document.getElementById("fempty").style.display = "flex";
+}
+
+function hideFempty() { document.getElementById("fempty").style.display = "none"; }
+function scrollFeed() { feed.scrollTop = feed.scrollHeight; }
+
+let typingEl = null;
+function addTyping(name) {
+  removeTyping();
+  typingEl = document.createElement("div"); typingEl.className = "fe-typing";
+  typingEl.innerHTML = `<div class="db"><span></span><span></span><span></span></div><span style="font-family:'Segoe UI',sans-serif">${esc(name)} is thinking…</span>`;
+  feed.appendChild(typingEl); scrollFeed();
+}
+function showTyping(name) { removeTyping(); addTyping(name); }
+function removeTyping() { if(typingEl){typingEl.remove();typingEl=null;} }
+
+function addSys(msg) {
+  hideFempty();
+  const el = document.createElement("div"); el.className = "fe-system";
+  el.innerHTML = `<div class="dot"></div><span style="font-family:'Segoe UI',sans-serif">${esc(msg)}</span><span class="fe-time">${now()}</span>`;
+  feed.appendChild(el); scrollFeed();
+}
+
+function addResponse(agentId, content, tagType) {
+  hideFempty();
+  const ag = agentDefs[agentId] || {id:agentId};
+  const c = agentColor(agentId);
+  const tagLbl = {resp:"response",plan:"plan",kick:"kickoff",done:"done"}[tagType]||tagType;
+  const el = document.createElement("div"); el.className = "fe-item";
+  // Convert basic markdown-ish formatting
+  const html = mdToHtml(content);
+  el.innerHTML = `
+    <div class="fe-response">
+      <div class="fe-av" style="background:${c}22;color:${c}">${agentInitials(agentId)}</div>
+      <div class="fe-body">
+        <div class="fe-head">
+          <span class="fe-who" style="color:${c}">${esc(ag.name||agentId)}</span>
+          <span class="fe-tag tag-${tagType==='plan'?'plan':tagType==='resp'?'resp':'team'}">${tagLbl}</span>
+          <span class="fe-time">${now()}</span>
+        </div>
+        <div class="fe-text">${html}</div>
+      </div>
+    </div>`;
+  feed.appendChild(el); scrollFeed();
+}
+
+function addError(msg) {
+  hideFempty();
+  const el = document.createElement("div"); el.className = "fe-item";
+  el.innerHTML = `<div class="fe-response"><div class="fe-av" style="background:var(--red)22;color:var(--red)">!</div><div class="fe-body"><div class="fe-head"><span class="fe-who" style="color:var(--red)">Error</span><span class="fe-tag tag-err">error</span><span class="fe-time">${now()}</span></div><div class="fe-text" style="color:var(--red)">${esc(msg)}</div></div></div>`;
+  feed.appendChild(el); scrollFeed();
+}
+
+const TOOL_META = {
+  Read:      {icon:"📄", cls:"tool-read",  label:"Read"},
+  Write:     {icon:"✏️",  cls:"tool-write", label:"Write"},
+  Edit:      {icon:"🔧", cls:"tool-edit",  label:"Edit"},
+  Bash:      {icon:"$",  cls:"tool-bash",  label:"Bash", mono:true},
+  Glob:      {icon:"🔍", cls:"tool-glob",  label:"Glob"},
+  Grep:      {icon:"🔎", cls:"tool-grep",  label:"Grep"},
+  TodoWrite: {icon:"📋", cls:"tool-todo",  label:"TodoWrite"},
+};
+
+let toolCallPending = {};  // tool_id → element
+
+function toolId(agent, tool, args) {
+  return `${agent}-${tool}-${JSON.stringify(args).slice(0,30)}`.replace(/\W/g,"_");
+}
+
+function addToolCall(agentId, tool, args) {
+  hideFempty();
+  const meta = TOOL_META[tool] || {icon:"⚙", cls:"tool-bash", label:tool};
+  const argPreview = getArgPreview(tool, args);
+  const id = toolId(agentId, tool, args);
+  const el = document.createElement("div"); el.className = `fe-item`;
+  el.id = `fe-tool-${id}`;
+  el.innerHTML = `
+    <div class="fe-tool ${meta.cls}" id="tool-block-${id}">
+      <div class="fe-tool-head" onclick="toggleTool('${id}')">
+        <span class="tool-icon">${meta.icon}</span>
+        <span class="tool-name" style="font-family:'Segoe UI',sans-serif">${meta.label}</span>
+        <span class="tool-arg">${esc(argPreview)}</span>
+        <span class="tool-arrow">▸</span>
+      </div>
+      <div class="fe-tool-body" id="tool-body-${id}">
+        <pre>${esc(JSON.stringify(args, null, 2))}</pre>
+      </div>
+    </div>`;
+  toolCallPending[id] = el;
+  feed.appendChild(el); scrollFeed();
+  return id;
+}
+
+function addToolResult(agentId, tool, args, result, full) {
+  const id = toolId(agentId, tool, args);
+  const bodyEl = document.getElementById(`tool-body-${id}`);
+  if (bodyEl) {
+    const isOk = !result.startsWith("[Error]") && !result.startsWith("[exit");
+    bodyEl.innerHTML = `<pre>${esc(result)}</pre>
+      <div style="display:flex;gap:5px;padding-top:4px;font-family:'Segoe UI',sans-serif">
+        <span style="font-size:9px;color:${isOk?'var(--green)':'var(--red)'}">${isOk?"✓ OK":"✗ Error"}</span>
+        ${full&&full.length>500?`<button onclick="showFull('${id}',this)" class="fca" style="font-size:9px;padding:1px 5px;margin:0;height:auto">Show full</button>`:""}
+      </div>`;
+    // Store full result for "show full"
+    bodyEl.dataset.full = full || result;
+  }
+  delete toolCallPending[id];
+}
+
+function showFull(id, btn) {
+  const bodyEl = document.getElementById(`tool-body-${id}`);
+  if (!bodyEl) return;
+  const pre = bodyEl.querySelector("pre");
+  if (pre) pre.textContent = bodyEl.dataset.full || "";
+  btn.style.display = "none";
+}
+
+function toggleTool(id) {
+  const body = document.getElementById(`tool-body-${id}`);
+  const arrow = document.querySelector(`#tool-block-${id} .tool-arrow`);
+  if (!body) return;
+  const open = body.classList.contains("open");
+  body.classList.toggle("open", !open);
+  if (arrow) arrow.textContent = open ? "▸" : "▾";
+}
+
+function getArgPreview(tool, args) {
+  if (tool === "Read" || tool === "Write" || tool === "Edit") return args.path || "";
+  if (tool === "Bash") return (args.command || "").slice(0, 60);
+  if (tool === "Glob") return args.pattern || "";
+  if (tool === "Grep") return `${args.pattern || ""} in ${args.path || "."}`;
+  if (tool === "TodoWrite") return `${(args.todos||[]).length} items`;
+  return "";
+}
+
+// ══════════════════════════════════════════════════════════
+// FILES PANEL
+// ══════════════════════════════════════════════════════════
+function trackFile(agentId, tool, args, fullContent) {
+  if (!["Read","Write","Edit"].includes(tool)) return;
+  const path = args.path;
+  if (!path) return;
+
+  const action = tool.toLowerCase();
+  if (!fileLog[path] || action !== "read") {  // writes/edits override
+    fileLog[path] = {action, agent: agentId, content: fullContent || ""};
+  }
+  renderFiles();
+}
+
+function renderFiles() {
+  const inner = document.getElementById("files-inner");
+  const count = document.getElementById("files-count");
+  const entries = Object.entries(fileLog);
+  count.textContent = `${entries.length} accessed`;
+
+  if (!entries.length) {
+    inner.innerHTML = `<div style="color:var(--text3);font-size:10px;font-family:'Segoe UI',sans-serif;padding:6px 0">Files read or written by agents appear here.</div>`;
+    return;
+  }
+
+  inner.innerHTML = "";
+  entries.forEach(([path, info]) => {
+    const safeId = path.replace(/[^a-z0-9]/gi,"_");
+    const actionCls = {read:"fa-read",write:"fa-write",edit:"fa-edit"}[info.action] || "fa-read";
+    const c = agentColor(info.agent);
+    const card = document.createElement("div"); card.className = "file-card";
+    card.innerHTML = `
+      <div class="fc-head" onclick="toggleFile('${safeId}')">
+        <span class="fc-action ${actionCls}">${info.action}</span>
+        <span class="fc-path">${esc(path)}</span>
+        <span class="fc-agent" style="color:${c}">${agentInitials(info.agent)}</span>
+        <span class="fc-arrow">▸</span>
+      </div>
+      <div class="fc-body" id="fcb-${safeId}">
+        <pre id="fcp-${safeId}">${esc((info.content||"").slice(0,2000))}${info.content?.length>2000?"…":""}</pre>
+        <div class="fc-acts">
+          <button class="fca" onclick="copyFile('${safeId}',this)">Copy</button>
+          <button class="fca" onclick="dlFile('${safeId}','${esc(path)}')">↓ Download</button>
+          <span style="font-size:9px;color:var(--text3);margin-left:auto;font-family:'Segoe UI',sans-serif">${info.content?.split("\n").length||0} lines</span>
+        </div>
+      </div>`;
+    inner.appendChild(card);
+  });
+
+  if (todosData.length) renderTodos();
+}
+
+function toggleFile(id) {
+  const body = document.getElementById(`fcb-${id}`);
+  const arrow = body?.previousElementSibling?.querySelector(".fc-arrow");
+  if (!body) return;
+  const open = body.classList.contains("open");
+  body.classList.toggle("open", !open);
+  if (arrow) arrow.textContent = open ? "▸" : "▾";
+}
+
+function copyFile(id, btn) {
+  const el = document.getElementById(`fcp-${id}`);
+  navigator.clipboard.writeText(el?.textContent||"").then(()=>{
+    btn.textContent="Copied!"; btn.classList.add("ok");
+    setTimeout(()=>{btn.textContent="Copy";btn.classList.remove("ok");},1500);
+  });
+}
+
+function dlFile(id, path) {
+  const el = document.getElementById(`fcp-${id}`);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([el?.textContent||""],{type:"text/plain"}));
+  a.download = path.split("/").pop() || "file.txt";
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function renderTodos() {
+  const inner = document.getElementById("files-inner");
+  let todosEl = document.getElementById("todos-section");
+  if (!todosEl) {
+    todosEl = document.createElement("div"); todosEl.id = "todos-section"; todosEl.className = "todos-section";
+    inner.appendChild(todosEl);
+  }
+  const icons = {pending:"○",in_progress:"◐",done:"●"};
+  todosEl.innerHTML = `<h4>Session TODOs</h4>` + todosData.map(t=>`
+    <div class="todo-item">
+      <span class="todo-ico" style="color:${t.status==="done"?"var(--green)":t.status==="in_progress"?"var(--blue)":"var(--text3)"}">${icons[t.status]||"○"}</span>
+      <span class="todo-text">${esc(t.content||"")}</span>
+      <span class="todo-pri tp-${t.priority||"medium"}">${t.priority||"med"}</span>
+    </div>`).join("");
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+}
+
+function mdToHtml(s) {
+  // Very basic markdown: **bold**, `code`, numbered lists, newlines
+  return String(s||"")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+    .replace(/`(.*?)`/g,"<code style='background:var(--bg3);padding:1px 4px;border-radius:3px;font-size:10px'>$1</code>")
+    .replace(/\n/g,"<br>");
+}
+
+function now() { return new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}); }
+
+function clearAll() {
+  if (running) stopRun();
+  clearFeed();
+  resetAgentStatuses();
+  document.getElementById("task-inp").value = "";
+}
+
+// keyboard shortcut
+document.getElementById("task-inp").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && !running) run();
+});
+
+// ══════════════════════════════════════════════════════════
+// QUICK TASK EXAMPLES (tailored to the WingBank ADE project)
+// ══════════════════════════════════════════════════════════
+const QUICK_TASKS = [
+  {mode:"team",  label:"Fix B1 RunStatus",  task:"Fix bug B1: RunStatus.ERROR == RunStatus.INPUT == 0 in bssemodule.py. Read the file, fix the enum, run the relevant tests."},
+  {mode:"single",agent:"backend-dev",       label:"Fix silent except auth.py", task:"Fix the silent except at auth.py line 68 that returns empty JSON on failure. Add proper logging and return a 401 HTTPException."},
+  {mode:"single",agent:"flow-engineer",     label:"Fix scheduler cron bug",    task:"Fix bug B2 in flow_scheduler.py: now.minute % 1 == 0 is always True. Read the file, understand the cron intent, and fix the modulo logic."},
+  {mode:"team",  label:"Audit dead code",   task:"Identify and list all dead code in the backend: commented-out endpoints in flowlist.py, duplicate trigger code in flow.py, and the flow_department facade. Provide a deletion plan."},
+  {mode:"single",agent:"data-engineer",     label:"Review schema for typos",   task:"Find all 'tempalate' typos in the ORM schema files under flow/dbschema/. List every file and column affected, then propose a migration plan."},
+];
+
+function renderQuickTasks() {
+  const tbar = document.getElementById("tbar");
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;padding-right:4px";
+  QUICK_TASKS.forEach(qt => {
+    const b = document.createElement("button");
+    b.className = "hbtn"; b.title = qt.task;
+    b.style.cssText = "white-space:nowrap;font-size:10px;flex-shrink:0";
+    b.textContent = qt.label;
+    b.onclick = () => {
+      document.getElementById("task-inp").value = qt.task;
+      setMode(qt.mode);
+      if (qt.mode === "single" && qt.agent) {
+        document.getElementById("agent-sel").value = qt.agent;
+        const card = document.getElementById(`agcard-${qt.agent}`);
+        if (card) { document.querySelectorAll(".agcard").forEach(x=>x.classList.remove("sel")); card.classList.add("sel"); }
+      }
+    };
+    row.appendChild(b);
+  });
+  // Insert before runBtn
+  const runBtn = document.getElementById("runBtn");
+  tbar.insertBefore(row, runBtn);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+setMode("team");
+renderQuickTasks();
+setTimeout(checkServer, 400);
+</script>
+</body>
+</html>
