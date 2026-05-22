@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
 from services import extract_credential, missing_fields
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -268,7 +269,13 @@ loadCredentials();
 </body>
 </html>
 """
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/chat")
 def chat(req: ChatRequest):
