@@ -36,7 +36,7 @@ from duckduckgo_search import DDGS
 # ============================================================
 
 llm = ChatOllama(
-    model="qwen3:4b-instruct",
+    model="qwen3:30b-instruct",
     temperature=0,
     base_url="http://10.123.0.218:8080"
 )
@@ -65,13 +65,23 @@ def flipkart_search(product: str) -> str:
         return "\n\n".join(
             f"{r['title']}\n{r['href']}" for r in results
         )
-
+    
+@tool
+def khmer24_search(product: str) -> str:
+    """Search khmer24 results using DuckDuckGo"""
+    with DDGS() as ddgs:
+        results = ddgs.text(f"Flipkart deals for {product}", max_results=3)
+        print("khmer24 result: ", results)
+        return "\n\n".join(
+            f"{r['title']}\n{r['href']}" for r in results
+        )
 # ============================================================
 # AGENTS (LangGraph ReAct agents)
 # ============================================================
 
 amazon_agent = create_react_agent(llm, [amazon_search])
 flipkart_agent = create_react_agent(llm, [flipkart_search])
+khmer24_agent = create_react_agent(llm, [khmer24_search])
 planner_agent = create_react_agent(llm, [])
 recommendation_agent = create_react_agent(llm, [])
 
@@ -79,7 +89,7 @@ recommendation_agent = create_react_agent(llm, [])
 # INPUT
 # ============================================================
 
-user_query = "Find best deal for iPhone 15 Pro 128GB in India"
+user_query = "Find best deal for iPhone 15 Pro 128GB"
 
 # ============================================================
 # STEP 1: PLANNING
@@ -94,10 +104,11 @@ Create execution plan:
 {user_query}
 
 Steps:
-1. Amazon search
-2. Flipkart search
-3. Compare prices
-4. Recommend best deal
+1. Amazon search, LINK: https://www.amazon.com/
+2. Flipkart search, LINK: https://www.flipkart.com/
+3. Khmer24 search, LINK: https://www.khmer24.com/
+4. Compare prices
+5. Recommend best deal
 """)]
 })
 
@@ -115,9 +126,9 @@ amazon_result = amazon_agent.invoke({
 
 print(amazon_result)
 
-# ============================================================
-# STEP 3: FLIPKART
-# ============================================================
+# # ============================================================
+# # STEP 3: FLIPKART
+# # ============================================================
 
 print("\n--- FLIPKART ---")
 
@@ -128,7 +139,19 @@ flipkart_result = flipkart_agent.invoke({
 print(flipkart_result)
 
 # ============================================================
-# STEP 4: RECOMMENDATION
+# STEP 4: Khmer 24
+# ============================================================
+
+print("\n--- Khmer 24 ---")
+
+khmer24_result = khmer24_agent.invoke({
+    "messages": [("user", f"Find deals for {user_query}")]
+})
+
+print(khmer24_result)
+
+# ============================================================
+# STEP 5: RECOMMENDATION
 # ============================================================
 
 print("\n--- FINAL RECOMMENDATION ---")
@@ -142,6 +165,9 @@ AMAZON:
 
 FLIPKART:
 {flipkart_result}
+
+Khmer24:
+{khmer24_result}
 
 Return:
 - best price
