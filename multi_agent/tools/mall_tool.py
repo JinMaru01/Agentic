@@ -46,7 +46,7 @@ def get_menu(store_name: str) -> list[str]:
 
 
 @tool
-def place_order(store_name: str, item: str) -> dict:
+def place_order(store_name: str, item: str, quantity: int = 1) -> dict:
     """Place an order after verifying store and item exist.
 
     Returns a confirmed order dict on success, or an error dict on failure.
@@ -58,21 +58,28 @@ def place_order(store_name: str, item: str) -> dict:
     if not menu:
         return {"status": "error", "message": f"Store '{store_name}' not found."}
 
-    menu_names = [
-        m["name"].lower() if isinstance(m, dict) else m.lower()
-        for m in menu
-    ]
+    # find the full matched item dict to extract price + currency
+    matched_item = None
+    for m in menu:
+        name = m["name"] if isinstance(m, dict) else m
+        if (name.lower() if isinstance(name, str) else "") == item.lower():
+            matched_item = m
+            break
 
-    if item.lower() not in menu_names:
+    if not matched_item:
+        menu_names = [m["name"] if isinstance(m, dict) else m for m in menu]
         return {
-            "status": "error",
-            "message": f"Item '{item}' not found in {store_name}. Available: {[m['name'] if isinstance(m, dict) else m for m in menu]}",
+            "status":  "error",
+            "message": f"Item '{item}' not found in {store_name}. Available: {menu_names}",
         }
 
     return {
-        "status": "confirmed",
-        "store": store_name,
-        "item": item,
+        "status":   "confirmed",
+        "store":    store_name,
+        "item":     item,
+        "price":    matched_item.get("price", 0.0),
+        "currency": matched_item.get("currency", "USD"),
+        "quantity": quantity,
         "order_id": "ORD-" + str(uuid.uuid4())[:8].upper(),
     }
 

@@ -1,6 +1,8 @@
 from collections import defaultdict
+
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
-from .graph.workflow import build_graph, AGENTS
+
+from .graph.workflow import build_graph, AGENTS, orchestrator_node, route_query
 
 
 # =========================================================
@@ -27,8 +29,12 @@ def pretty_print(state: dict):
             agent.pretty_print(result)
         else:
             print(f"  Result    : {result}")
-    else:
-        print(f"  Result    : {result}")
+
+    # --- calculator handoff summary -----------------------
+    calc = result.get("calc_result", {})
+    if calc and calc.get("summary"):
+        print(f"\nORDER TOTAL (via calculator agent):")
+        print(calc["summary"])
 
 
 # =========================================================
@@ -36,10 +42,6 @@ def pretty_print(state: dict):
 # =========================================================
 
 def _append_turn(history: list, query: str, result: dict) -> list:
-    """
-    Appends the latest user query and agent responses into
-    the agent-specific history list.
-    """
 
     history.append(HumanMessage(content=query))
 
@@ -50,27 +52,15 @@ def _append_turn(history: list, query: str, result: dict) -> list:
     return history
 
 
-def _build_state(query: str, history: list) -> dict:
-
-    return {
-        "query":    query,
-        "route_to": "",
-        "result":   {},
-        "error":    "",
-        "history":  history,
-    }
-
-
 # =========================================================
 # MAIN
 # =========================================================
 
 def main():
 
-    graph = build_graph()
-
-    # Per-agent history — keyed by agent name, isolated per agent
-    histories: dict[str, list] = defaultdict(list)
+    graph      = build_graph()
+    histories  = defaultdict(list)
+    last_agent = "none"
 
     print("\nMulti-Agent System Ready")
     print("Type 'exit' to quit\n")
@@ -87,41 +77,52 @@ def main():
             continue
 
         try:
-            # --- first pass: orchestrate only to get route ----
 
             probe_state = {
-                "query":    query,
-                "route_to": "",
-                "result":   {},
-                "error":    "",
-                "history":  [],
+                "query":      query,
+                "route_to":   "",
+                "result":     {},
+                "error":      "",
+                "history":    [],
+                "last_agent": last_agent,
             }
 
-            from .graph.workflow import orchestrator_node, route_query
-            routed = orchestrator_node(probe_state)
-            agent_key = route_query(routed)
+            routed_state = orchestrator_node(probe_state)
+            agent_key    = route_query(routed_state)
 
-            # --- pick the right history for this agent --------
+            # --- pick the right history for this agent -----------
 
             agent_history = histories[agent_key]
 
-            # --- run full graph with correct history ----------
+            # --- run full graph with correct history + last_agent -
 
-            initial_state = _build_state(query, agent_history)
+            initial_state = {
+                "query":      query,
+                "route_to":   "",
+                "result":     {},
+                "error":      "",
+                "history":    agent_history,
+                "last_agent": last_agent,
+            }
+
             final_state = graph.invoke(initial_state)
 
             print("\n" + "=" * 60)
             pretty_print(final_state)
             print("=" * 60)
 
-            # --- update only this agent's history -------------
+            # --- update history + last_agent on success ----------
 
             if not final_state.get("error") and final_state.get("result"):
-                histories[agent_key] = _append_turn(
-                    agent_history,
-                    query,
-                    final_state["result"],
-                )
+                routed_key = final_state.get("route_to", agent_key)
+
+                if routed_key not in ("unknown", "fallback", ""):
+                    histories[routed_key] = _append_turn(
+                        histories[routed_key],
+                        query,
+                        final_state["result"],
+                    )
+                    last_agent = routed_key
 
         except Exception as e:
             print(f"\nERROR: {e}")

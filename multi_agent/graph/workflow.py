@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import TypedDict, Literal, Annotated
 
 from langchain_core.messages import BaseMessage
@@ -8,17 +9,18 @@ from langgraph.graph.message import add_messages
 from config import AgentConfig
 from ..agent.orchestrator import OrchestratorAgent
 
-
+logger = logging.getLogger(__name__)
 # =========================================================
 # STATE
 # =========================================================
 
 class AgentState(TypedDict):
-    query:    str
-    route_to: str
-    result:   dict
-    error:    str
-    history:  list
+    query:      str
+    route_to:   str
+    result:     dict
+    error:      str
+    history:    list
+    last_agent: str
 
 
 class CalculationState(TypedDict):
@@ -70,6 +72,7 @@ def _build_calculator_subgraph():
             if type(msg).__name__ == "AIMessage" and msg.content:
                 calc_result["summary"] = msg.content
                 break
+            
 
         return {**state, "messages": result.get("messages", []), "calc_result": calc_result}
 
@@ -90,15 +93,14 @@ _calculator_subgraph = _build_calculator_subgraph()
 
 def _extract_confirmed_items(result: dict) -> list[dict]:
 
+    confirmed_data = None
+
     for msg in result.get("messages", []):
         if type(msg).__name__ != "ToolMessage":
             continue
 
         content = msg.content
-
-        # content can be a raw string, a JSON string, or already a list/dict
         if isinstance(content, list):
-            # take the first element if it's a list of dicts
             data = content[0] if content else {}
         elif isinstance(content, dict):
             data = content
@@ -110,7 +112,6 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
         else:
             continue
 
-        # data itself might still be a list after parsing
         if isinstance(data, list):
             data = data[0] if data else {}
 
@@ -118,23 +119,50 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
             continue
 
         if data.get("status") == "confirmed":
+            confirmed_data = data
+
+    if not confirmed_data:
+        return []
+
+    # guard: price and quantity must be real values
+    price    = confirmed_data.get("price", 0.0)
+    quantity = confirmed_data.get("quantity", 1)
+
+    if not price:
+        logger.warning(
+            f"[_extract_confirmed_items] price missing from confirmed order — "
+            f"handoff skipped. data: {confirmed_data}"
+        )
+        return []
+
+    for msg in result.get("messages", []):
+        if type(msg).__name__ == "AIMessage" and "[TOTAL_REQUESTED]" in (msg.content or ""):
             return [{
-                "name":     data.get("item", ""),
-                "price":    data.get("price", 0.0),
-                "currency": data.get("currency", "USD"),
-                "quantity": 1,
+                "name":     confirmed_data.get("item", ""),
+                "price":    price,
+                "currency": confirmed_data.get("currency", "USD"),
+                "quantity": quantity,
             }]
 
     return []
 
+_CONFIRMATION_WORDS = {
+    "yes", "ok", "confirm", "go ahead", "sure", "yep", "yeah", "proceed", "do it", "place it",
+    "no", "cancel", "nope", 
+}
 
 # =========================================================
 # NODES
 # =========================================================
 
 def orchestrator_node(state: AgentState) -> AgentState:
+    query = state["query"].strip().lower()
+    last_agent = state.get("last_agent", "none")
 
-    route = _orchestrator.classify(state["query"])
+    if query in _CONFIRMATION_WORDS and last_agent != "none":
+        return {**state, "route_to": last_agent}
+    
+    route = _orchestrator.classify(query, last_agent=last_agent)
     return {**state, "route_to": route}
 
 
