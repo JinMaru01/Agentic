@@ -1,0 +1,1162 @@
+[
+    {
+        "id": "S1",
+        "name": "Sushi Express",
+        "category": "food",
+        "rating": 4.5,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "10:00 AM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Best Salmon Sushi",
+                "price": 8,
+                "currency": "USD",
+                "description": "Fresh salmon over rice",
+                "ingredients": ["salmon", "rice", "vinegar"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Tuna Roll",
+                "price": 10,
+                "currency": "USD",
+                "description": "Classic tuna wrapped in seaweed and rice",
+                "ingredients": ["tuna", "rice", "nori", "sesame"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Ebi Tempura Roll",
+                "price": 12,
+                "currency": "USD",
+                "description": "Crispy prawn tempura rolled with avocado",
+                "ingredients": ["prawn", "avocado", "rice", "nori", "tempura batter"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Spicy Crab Hand Roll",
+                "price": 11,
+                "currency": "USD",
+                "description": "Cone-shaped roll with spicy crab mix",
+                "ingredients": ["crab", "sriracha", "mayo", "rice", "nori", "cucumber"],
+                "isAvailable": false
+            },
+            {
+                "id": "F5",
+                "name": "Miso Soup",
+                "price": 3,
+                "currency": "USD",
+                "description": "Traditional Japanese soup with tofu and wakame",
+                "ingredients": ["miso paste", "tofu", "wakame", "spring onion"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S2",
+        "name": "Burger Hub",
+        "category": "food",
+        "rating": 4.2,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "11:00 AM",
+            "close": "11:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Cheese Burger",
+                "price": 12,
+                "currency": "USD",
+                "description": "Beef patty with cheese",
+                "ingredients": ["beef", "cheese", "bun"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Chicken Burger",
+                "price": 11,
+                "currency": "USD",
+                "description": "Crispy chicken fillet burger",
+                "ingredients": ["chicken", "bun", "lettuce"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "French Fries",
+                "price": 5,
+                "currency": "USD",
+                "description": "Crispy golden fries",
+                "ingredients": ["potato", "salt"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Veggie Burger",
+                "price": 10,
+                "currency": "USD",
+                "description": "Plant-based burger patty",
+                "ingredients": ["vegetables", "bun", "lettuce"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Milkshake",
+                "price": 6,
+                "currency": "USD",
+                "description": "Creamy blended milkshake",
+                "ingredients": ["milk", "ice cream", "sugar"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S3",
+        "name": "Pizza Corner",
+        "category": "food",
+        "rating": 4.3,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "10:30 AM",
+            "close": "11:30 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Pepperoni Pizza",
+                "price": 15,
+                "currency": "USD",
+                "description": "Classic pepperoni pizza",
+                "ingredients": ["dough", "cheese", "pepperoni"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Margherita Pizza",
+                "price": 13,
+                "currency": "USD",
+                "description": "Tomato, basil and cheese pizza",
+                "ingredients": ["dough", "tomato", "cheese", "basil"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "BBQ Chicken Pizza",
+                "price": 16,
+                "currency": "USD",
+                "description": "Smoky BBQ chicken topping",
+                "ingredients": ["chicken", "bbq sauce", "cheese", "dough"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Garlic Bread",
+                "price": 6,
+                "currency": "USD",
+                "description": "Toasted garlic bread",
+                "ingredients": ["bread", "garlic", "butter"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Soft Drink",
+                "price": 3,
+                "currency": "USD",
+                "description": "Chilled beverage",
+                "ingredients": ["water", "sugar", "flavoring"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S4",
+        "name": "Noodle House",
+        "category": "food",
+        "rating": 4.4,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "9:00 AM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Chicken Ramen",
+                "price": 10,
+                "currency": "USD",
+                "description": "Rich chicken broth ramen",
+                "ingredients": ["noodles", "chicken", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Beef Noodles",
+                "price": 11,
+                "currency": "USD",
+                "description": "Savory beef noodle soup",
+                "ingredients": ["beef", "noodles", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Vegetable Ramen",
+                "price": 9,
+                "currency": "USD",
+                "description": "Healthy vegetable ramen",
+                "ingredients": ["noodles", "vegetables", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Dumplings",
+                "price": 7,
+                "currency": "USD",
+                "description": "Steamed dumplings",
+                "ingredients": ["flour", "meat", "vegetables"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Fried Rice",
+                "price": 8,
+                "currency": "USD",
+                "description": "Classic fried rice",
+                "ingredients": ["rice", "egg", "vegetables"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S5",
+        "name": "Taco Town",
+        "category": "food",
+        "rating": 4.1,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "11:00 AM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Beef Taco",
+                "price": 6,
+                "currency": "USD",
+                "description": "Spicy beef taco",
+                "ingredients": ["beef", "tortilla", "lettuce"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Chicken Taco",
+                "price": 6,
+                "currency": "USD",
+                "description": "Grilled chicken taco",
+                "ingredients": ["chicken", "tortilla", "lettuce"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Veg Taco",
+                "price": 5,
+                "currency": "USD",
+                "description": "Vegetarian taco",
+                "ingredients": ["vegetables", "tortilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Nachos",
+                "price": 7,
+                "currency": "USD",
+                "description": "Cheesy nachos",
+                "ingredients": ["corn chips", "cheese", "jalapeno"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Burrito",
+                "price": 9,
+                "currency": "USD",
+                "description": "Loaded burrito wrap",
+                "ingredients": ["tortilla", "beans", "rice", "meat"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S6",
+        "name": "Salad Stop",
+        "category": "food",
+        "rating": 4.6,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "8:00 AM",
+            "close": "8:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Caesar Salad",
+                "price": 9,
+                "currency": "USD",
+                "description": "Fresh Caesar salad",
+                "ingredients": ["lettuce", "croutons", "cheese"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Greek Salad",
+                "price": 8,
+                "currency": "USD",
+                "description": "Mediterranean salad",
+                "ingredients": ["tomato", "cucumber", "feta"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Quinoa Salad",
+                "price": 10,
+                "currency": "USD",
+                "description": "Healthy quinoa bowl",
+                "ingredients": ["quinoa", "vegetables"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Fruit Salad",
+                "price": 7,
+                "currency": "USD",
+                "description": "Fresh mixed fruits",
+                "ingredients": ["apple", "banana", "grapes"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Soup of the Day",
+                "price": 6,
+                "currency": "USD",
+                "description": "Seasonal soup",
+                "ingredients": ["vegetables", "stock"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S7",
+        "name": "Coffee Bean",
+        "category": "beverage",
+        "rating": 4.3,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "7:00 AM",
+            "close": "9:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Cappuccino",
+                "price": 5,
+                "currency": "USD",
+                "description": "Espresso with milk foam",
+                "ingredients": ["coffee", "milk"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Espresso",
+                "price": 4,
+                "currency": "USD",
+                "description": "Strong black coffee",
+                "ingredients": ["coffee"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Latte",
+                "price": 5,
+                "currency": "USD",
+                "description": "Coffee with milk",
+                "ingredients": ["coffee", "milk"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Americano",
+                "price": 4,
+                "currency": "USD",
+                "description": "Diluted espresso",
+                "ingredients": ["coffee", "water"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Mocha",
+                "price": 6,
+                "currency": "USD",
+                "description": "Chocolate flavored coffee",
+                "ingredients": ["coffee", "chocolate", "milk"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S8",
+        "name": "Dessert Haven",
+        "category": "dessert",
+        "rating": 4.7,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "12:00 PM",
+            "close": "11:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Chocolate Cake",
+                "price": 7,
+                "currency": "USD",
+                "description": "Rich chocolate cake slice",
+                "ingredients": ["chocolate", "flour", "sugar"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Cheesecake",
+                "price": 8,
+                "currency": "USD",
+                "description": "Creamy cheesecake",
+                "ingredients": ["cheese", "sugar", "crust"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Brownie",
+                "price": 5,
+                "currency": "USD",
+                "description": "Chocolate brownie",
+                "ingredients": ["chocolate", "flour", "butter"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Ice Cream Sundae",
+                "price": 6,
+                "currency": "USD",
+                "description": "Ice cream with toppings",
+                "ingredients": ["ice cream", "syrup", "nuts"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Tiramisu",
+                "price": 8,
+                "currency": "USD",
+                "description": "Coffee-flavored dessert",
+                "ingredients": ["coffee", "cream", "biscuit"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S9",
+        "name": "BBQ Grill",
+        "category": "food",
+        "rating": 4.2,
+        "deliveryAvailable": false,
+        "storeHours": {
+            "open": "5:00 PM",
+            "close": "12:00 AM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Grilled Chicken",
+                "price": 14,
+                "currency": "USD",
+                "description": "Smoky grilled chicken",
+                "ingredients": ["chicken", "spices"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Beef Ribs",
+                "price": 18,
+                "currency": "USD",
+                "description": "Slow cooked ribs",
+                "ingredients": ["beef", "sauce"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Lamb Chops",
+                "price": 20,
+                "currency": "USD",
+                "description": "Grilled lamb chops",
+                "ingredients": ["lamb", "spices"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Grilled Corn",
+                "price": 5,
+                "currency": "USD",
+                "description": "Buttered corn",
+                "ingredients": ["corn", "butter"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Sausages",
+                "price": 7,
+                "currency": "USD",
+                "description": "Grilled sausages",
+                "ingredients": ["meat", "spices"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S10",
+        "name": "Vegan Bites",
+        "category": "food",
+        "rating": 4.5,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "9:00 AM",
+            "close": "9:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Vegan Bowl",
+                "price": 11,
+                "currency": "USD",
+                "description": "Healthy plant-based bowl",
+                "ingredients": ["quinoa", "avocado", "beans"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Vegan Burger",
+                "price": 10,
+                "currency": "USD",
+                "description": "Plant-based burger",
+                "ingredients": ["vegetables", "bun"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Tofu Stir Fry",
+                "price": 9,
+                "currency": "USD",
+                "description": "Stir fried tofu",
+                "ingredients": ["tofu", "vegetables"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Lentil Soup",
+                "price": 7,
+                "currency": "USD",
+                "description": "Healthy lentil soup",
+                "ingredients": ["lentils", "spices"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Smoothie Bowl",
+                "price": 8,
+                "currency": "USD",
+                "description": "Fruit smoothie bowl",
+                "ingredients": ["fruit", "yogurt"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S11",
+        "name": "Pasta Point",
+        "category": "food",
+        "rating": 4.3,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "10:00 AM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Carbonara",
+                "price": 13,
+                "currency": "USD",
+                "description": "Creamy pasta",
+                "ingredients": ["pasta", "cream"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Bolognese",
+                "price": 14,
+                "currency": "USD",
+                "description": "Meat sauce pasta",
+                "ingredients": ["pasta", "beef", "tomato"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Alfredo Pasta",
+                "price": 13,
+                "currency": "USD",
+                "description": "Creamy Alfredo sauce",
+                "ingredients": ["pasta", "cream", "cheese"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Pesto Pasta",
+                "price": 12,
+                "currency": "USD",
+                "description": "Basil pesto pasta",
+                "ingredients": ["pasta", "basil", "nuts"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Lasagna",
+                "price": 15,
+                "currency": "USD",
+                "description": "Layered baked pasta",
+                "ingredients": ["pasta", "cheese", "beef"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S12",
+        "name": "Steak House",
+        "category": "food",
+        "rating": 4.6,
+        "deliveryAvailable": false,
+        "storeHours": {
+            "open": "5:00 PM",
+            "close": "11:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Ribeye Steak",
+                "price": 25,
+                "currency": "USD",
+                "description": "Grilled ribeye",
+                "ingredients": ["beef"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Sirloin Steak",
+                "price": 22,
+                "currency": "USD",
+                "description": "Juicy sirloin steak",
+                "ingredients": ["beef"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "T-Bone Steak",
+                "price": 28,
+                "currency": "USD",
+                "description": "Premium cut steak",
+                "ingredients": ["beef"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Mashed Potatoes",
+                "price": 6,
+                "currency": "USD",
+                "description": "Creamy mashed potatoes",
+                "ingredients": ["potato", "milk"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Mushroom Soup",
+                "price": 7,
+                "currency": "USD",
+                "description": "Creamy mushroom soup",
+                "ingredients": ["mushroom", "cream"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S13",
+        "name": "Ice Cream World",
+        "category": "dessert",
+        "rating": 4.8,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "12:00 PM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Vanilla Scoop",
+                "price": 4,
+                "currency": "USD",
+                "description": "Classic ice cream",
+                "ingredients": ["milk", "vanilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Chocolate Scoop",
+                "price": 4,
+                "currency": "USD",
+                "description": "Chocolate ice cream",
+                "ingredients": ["milk", "chocolate"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Strawberry Scoop",
+                "price": 4,
+                "currency": "USD",
+                "description": "Strawberry ice cream",
+                "ingredients": ["milk", "strawberry"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Ice Cream Sundae",
+                "price": 6,
+                "currency": "USD",
+                "description": "Ice cream with toppings",
+                "ingredients": ["ice cream", "syrup"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Milkshake",
+                "price": 5,
+                "currency": "USD",
+                "description": "Blended milkshake",
+                "ingredients": ["milk", "ice cream"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S14",
+        "name": "Healthy Juice Bar",
+        "category": "beverage",
+        "rating": 4.4,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "8:00 AM",
+            "close": "8:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Green Juice",
+                "price": 6,
+                "currency": "USD",
+                "description": "Fresh blended greens",
+                "ingredients": ["spinach", "apple"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Orange Juice",
+                "price": 5,
+                "currency": "USD",
+                "description": "Fresh orange juice",
+                "ingredients": ["orange"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Carrot Juice",
+                "price": 5,
+                "currency": "USD",
+                "description": "Fresh carrot juice",
+                "ingredients": ["carrot"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Detox Juice",
+                "price": 7,
+                "currency": "USD",
+                "description": "Healthy detox drink",
+                "ingredients": ["cucumber", "lemon"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Fruit Smoothie",
+                "price": 6,
+                "currency": "USD",
+                "description": "Mixed fruit smoothie",
+                "ingredients": ["fruit", "yogurt"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S15",
+        "name": "Seafood Bay",
+        "category": "food",
+        "rating": 4.5,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "11:00 AM",
+            "close": "10:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Grilled Fish",
+                "price": 18,
+                "currency": "USD",
+                "description": "Fresh grilled fish",
+                "ingredients": ["fish"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Grilled Prawns",
+                "price": 20,
+                "currency": "USD",
+                "description": "Garlic grilled prawns",
+                "ingredients": ["prawns", "garlic"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Crab Curry",
+                "price": 22,
+                "currency": "USD",
+                "description": "Spicy crab curry",
+                "ingredients": ["crab", "spices"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Lobster",
+                "price": 30,
+                "currency": "USD",
+                "description": "Grilled lobster",
+                "ingredients": ["lobster"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Fish Soup",
+                "price": 12,
+                "currency": "USD",
+                "description": "Seafood soup",
+                "ingredients": ["fish", "broth"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S16",
+        "name": "Wrap It Up",
+        "category": "food",
+        "rating": 4.2,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "9:00 AM",
+            "close": "9:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Chicken Wrap",
+                "price": 8,
+                "currency": "USD",
+                "description": "Chicken tortilla wrap",
+                "ingredients": ["chicken", "tortilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Beef Wrap",
+                "price": 9,
+                "currency": "USD",
+                "description": "Beef wrap",
+                "ingredients": ["beef", "tortilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Veg Wrap",
+                "price": 7,
+                "currency": "USD",
+                "description": "Vegetable wrap",
+                "ingredients": ["vegetables", "tortilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Falafel Wrap",
+                "price": 8,
+                "currency": "USD",
+                "description": "Middle Eastern wrap",
+                "ingredients": ["falafel", "tortilla"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "French Fries",
+                "price": 5,
+                "currency": "USD",
+                "description": "Crispy fries",
+                "ingredients": ["potato"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S17",
+        "name": "Dim Sum Delight",
+        "category": "food",
+        "rating": 4.6,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "8:00 AM",
+            "close": "3:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Shrimp Dumplings",
+                "price": 7,
+                "currency": "USD",
+                "description": "Steamed dumplings",
+                "ingredients": ["shrimp", "flour"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Pork Buns",
+                "price": 6,
+                "currency": "USD",
+                "description": "Soft pork buns",
+                "ingredients": ["pork", "flour"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Siu Mai",
+                "price": 6,
+                "currency": "USD",
+                "description": "Open dumplings",
+                "ingredients": ["pork", "shrimp"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Spring Rolls",
+                "price": 5,
+                "currency": "USD",
+                "description": "Crispy rolls",
+                "ingredients": ["vegetables", "wrapper"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Vegetable Dumplings",
+                "price": 6,
+                "currency": "USD",
+                "description": "Steamed veg dumplings",
+                "ingredients": ["vegetables", "flour"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S18",
+        "name": "Hotpot Central",
+        "category": "food",
+        "rating": 4.7,
+        "deliveryAvailable": false,
+        "storeHours": {
+            "open": "4:00 PM",
+            "close": "12:00 AM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Beef Hotpot",
+                "price": 20,
+                "currency": "USD",
+                "description": "Spicy hotpot base",
+                "ingredients": ["beef", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Chicken Hotpot",
+                "price": 18,
+                "currency": "USD",
+                "description": "Chicken hotpot",
+                "ingredients": ["chicken", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Vegetable Hotpot",
+                "price": 16,
+                "currency": "USD",
+                "description": "Veg hotpot",
+                "ingredients": ["vegetables", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Seafood Hotpot",
+                "price": 22,
+                "currency": "USD",
+                "description": "Seafood mix hotpot",
+                "ingredients": ["seafood", "broth"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Noodles",
+                "price": 5,
+                "currency": "USD",
+                "description": "Add-on noodles",
+                "ingredients": ["noodles"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S19",
+        "name": "Sandwich Club",
+        "category": "food",
+        "rating": 4.1,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "7:00 AM",
+            "close": "7:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Turkey Sandwich",
+                "price": 7,
+                "currency": "USD",
+                "description": "Fresh sandwich",
+                "ingredients": ["bread", "turkey"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Ham Sandwich",
+                "price": 7,
+                "currency": "USD",
+                "description": "Ham sandwich",
+                "ingredients": ["bread", "ham"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Cheese Sandwich",
+                "price": 6,
+                "currency": "USD",
+                "description": "Cheese sandwich",
+                "ingredients": ["bread", "cheese"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Tuna Sandwich",
+                "price": 8,
+                "currency": "USD",
+                "description": "Tuna sandwich",
+                "ingredients": ["bread", "tuna"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "Egg Sandwich",
+                "price": 6,
+                "currency": "USD",
+                "description": "Egg sandwich",
+                "ingredients": ["bread", "egg"],
+                "isAvailable": true
+            }
+        ]
+    },
+    {
+        "id": "S20",
+        "name": "Breakfast and Cafe",
+        "category": "food",
+        "rating": 4.5,
+        "deliveryAvailable": true,
+        "storeHours": {
+            "open": "6:00 AM",
+            "close": "2:00 PM"
+        },
+        "menu": [
+            {
+                "id": "F1",
+                "name": "Egg Breakfast Set",
+                "price": 9,
+                "currency": "USD",
+                "description": "Eggs with toast",
+                "ingredients": ["eggs", "bread"],
+                "isAvailable": true
+            },
+            {
+                "id": "F2",
+                "name": "Pancakes",
+                "price": 8,
+                "currency": "USD",
+                "description": "Fluffy pancakes",
+                "ingredients": ["flour", "eggs", "milk"],
+                "isAvailable": true
+            },
+            {
+                "id": "F3",
+                "name": "Waffles",
+                "price": 8,
+                "currency": "USD",
+                "description": "Golden waffles",
+                "ingredients": ["flour", "eggs", "milk"],
+                "isAvailable": true
+            },
+            {
+                "id": "F4",
+                "name": "Omelette",
+                "price": 7,
+                "currency": "USD",
+                "description": "Cheese omelette",
+                "ingredients": ["eggs", "cheese"],
+                "isAvailable": true
+            },
+            {
+                "id": "F5",
+                "name": "French Toast",
+                "price": 8,
+                "currency": "USD",
+                "description": "Sweet toast",
+                "ingredients": ["bread", "eggs", "milk"],
+                "isAvailable": true
+            }
+        ]
+    }
+]

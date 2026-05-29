@@ -140,3 +140,5 @@ def percentage(value: float, percent: float) -> float:
 def percent_change(old: float, new: float) -> float:
     """Calculate percentage change."""
     return ((new - old) / old) * 100
+
+tools: list= [add, subtract, multiply, divide, power, sqrt, nth_root, percentage, percent_change, safe_eval,]

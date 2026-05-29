@@ -2,22 +2,21 @@
 # IMPORTS
 # =========================================================
 
-
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from langchain_ollama import ChatOllama
-from langchain.agents import create_agent
+from langgraph.prebuilt import create_react_agent
 
 from config import AgentConfig
-from ..prompts.calculator_prompts import SYSTEM_PROMPT
-from ..tools.calculator_tools import tools
+from ..prompts.mall_prompts import SYSTEM_PROMPT
+from ..tools.mall_tool import tools
 
 
 # =========================================================
-# CALCULATOR AGENT
+# MALL AGENT
 # =========================================================
 
-class CalculatorAgent:
+class MallAgent:
 
     def __init__(self, config: AgentConfig):
 
@@ -29,7 +28,7 @@ class CalculatorAgent:
     # -----------------------------------------------------
 
     def _build_llm(self):
-
+        
         return ChatOllama(
             model=self.config.model_name,
             temperature=self.config.temperature,
@@ -46,10 +45,10 @@ class CalculatorAgent:
 
     def _build_agent(self):
 
-        return create_agent(
+        return create_react_agent(
             model=self.llm,
             tools=self.tools,
-            system_prompt=SYSTEM_PROMPT,
+            prompt=SYSTEM_PROMPT,
         )
 
     # -----------------------------------------------------
@@ -62,7 +61,6 @@ class CalculatorAgent:
                 {"role": "user", "content": query}
             ]
         })
-
     # -----------------------------------------------------
 
     def pretty_print(self, result: Dict[str, Any]):
@@ -100,6 +98,5 @@ class CalculatorAgent:
             # ---------------------------------------------
 
             elif msg_type == "ToolMessage":
-
                 print(f"\nTOOL RESULT:")
                 print(msg.content)
