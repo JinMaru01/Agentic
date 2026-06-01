@@ -9,7 +9,9 @@ from langgraph.graph.message import add_messages
 from config import AgentConfig
 from ..agent.orchestrator import OrchestratorAgent
 
-logger = logging.getLogger(__name__)
+from ..core.logger import get_agent_logger
+
+logger = get_agent_logger("orchestrator")
 # =========================================================
 # STATE
 # =========================================================
@@ -160,9 +162,11 @@ def orchestrator_node(state: AgentState) -> AgentState:
     last_agent = state.get("last_agent", "none")
 
     if query in _CONFIRMATION_WORDS and last_agent != "none":
+        logger.info(f"[route] confirmation word detected | continuing with: {last_agent}")
         return {**state, "route_to": last_agent}
     
     route = _orchestrator.classify(query, last_agent=last_agent)
+    logger.info(f"[route] query: '{query}' | last_agent: {last_agent} | routed to: {route}")
     return {**state, "route_to": route}
 
 
@@ -181,13 +185,17 @@ def calculator_node(state: AgentState) -> AgentState:
 # ---------------------------------------------------------
 
 def mall_node(state: AgentState) -> AgentState:
-
     try:
         result = AGENTS["mall"].run(state["query"], state.get("history", []))
-
-        items = _extract_confirmed_items(result)
+        items  = _extract_confirmed_items(result)
 
         if items:
+            item_labels = [
+                f"{i['quantity']}x {i['name']} @ {i['price']} {i['currency']}"
+                for i in items
+            ]
+            logger.info(f"[handoff] mall → calculator | items: {item_labels}")
+
             tax_rate   = getattr(_config, "tax_rate", 0.09)
             calc_state = _calculator_subgraph.invoke({
                 "items":       items,
@@ -196,10 +204,17 @@ def mall_node(state: AgentState) -> AgentState:
                 "calc_result": {},
             })
             result["calc_result"] = calc_state["calc_result"]
+            logger.info(
+                f"[handoff] calculator complete | "
+                f"summary: {result['calc_result'].get('summary', '')[:80]}"
+            )
+        else:
+            logger.debug("[handoff] no confirmed order — calculator not invoked")
 
         return {**state, "result": result, "error": ""}
 
     except Exception as e:
+        logger.error(f"[mall_node] {e}")
         return {**state, "result": {}, "error": str(e)}
 
 

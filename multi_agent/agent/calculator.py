@@ -11,7 +11,9 @@ from langchain.agents import create_agent
 from config import AgentConfig
 from ..prompts.calculator_prompts import SYSTEM_PROMPT
 from ..tools.calculator_tools import tools
+from ..core.logger import get_agent_logger
 
+logger = get_agent_logger("calculator")
 
 # =========================================================
 # CALCULATOR AGENT
@@ -25,6 +27,7 @@ class CalculatorAgent:
         self.llm = self._build_llm()
         self.tools = self._build_tools()
         self.agent = self._build_agent()
+        logger.info("CalculatorAgent initialized")
 
     # -----------------------------------------------------
 
@@ -54,14 +57,29 @@ class CalculatorAgent:
 
     # -----------------------------------------------------
 
-    def run(self, query: str, history: list = []) -> Dict[str, Any]:
+    def run(self, query: str, history: list = []) -> dict:
+            logger.info(f"[run] query: {query}")
 
-        return self.agent.invoke({
-            "messages": [
-                *history,
-                {"role": "user", "content": query}
-            ]
-        })
+            result = self.agent.invoke({
+                "messages": [
+                    *history,
+                    {"role": "user", "content": query}
+                ]
+            })
+
+            for msg in result.get("messages", []):
+                msg_type = type(msg).__name__
+
+                if msg_type == "AIMessage":
+                    if getattr(msg, "tool_calls", None):
+                        for tc in msg.tool_calls:
+                            logger.info(f"[tool_call] {tc['name']} | args: {tc['args']}")
+
+                elif msg_type == "ToolMessage":
+                    logger.debug(f"[tool_result] {msg.content[:200]}")
+
+            logger.info(f"[run] complete")
+            return result
 
     # -----------------------------------------------------
 

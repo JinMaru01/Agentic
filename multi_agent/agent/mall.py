@@ -10,7 +10,9 @@ from langgraph.prebuilt import create_react_agent
 from config import AgentConfig
 from ..prompts.mall_prompts import SYSTEM_PROMPT
 from ..tools.mall_tool import tools
+from ..core.logger import get_agent_logger
 
+logger = get_agent_logger("mall")
 
 # =========================================================
 # MALL AGENT
@@ -24,6 +26,8 @@ class MallAgent:
         self.llm = self._build_llm()
         self.tools = self._build_tools()
         self.agent = self._build_agent()
+
+        logger.info("MallAgent initialized")
 
     # -----------------------------------------------------
 
@@ -53,14 +57,34 @@ class MallAgent:
 
     # -----------------------------------------------------
 
-    def run(self, query: str, history: list = []) -> Dict[str, Any]:
+    def run(self, query: str, history: list = []) -> dict:
+        logger.info(f"[run] query: {query}")
 
-        return self.agent.invoke({
+        result = self.agent.invoke({
             "messages": [
                 *history,
                 {"role": "user", "content": query}
             ]
         })
+
+        for msg in result.get("messages", []):
+            msg_type = type(msg).__name__
+
+            if msg_type == "AIMessage":
+                if getattr(msg, "tool_calls", None):
+                    for tc in msg.tool_calls:
+                        logger.info(f"[tool_call] {tc['name']} | args: {tc['args']}")
+
+            elif msg_type == "ToolMessage":
+                logger.debug(f"[tool_result] {msg.content[:200]}")
+
+            elif msg_type == "AIMessage" and msg.content:
+                clean = msg.content.replace("[TOTAL_REQUESTED]", "").strip()
+                if clean:
+                    logger.info(f"[response] {clean[:200]}")
+
+        logger.info(f"[run] complete")
+        return result
     # -----------------------------------------------------
 
     def pretty_print(self, result: Dict[str, Any]):

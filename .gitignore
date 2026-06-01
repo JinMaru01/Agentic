@@ -63,3 +63,4 @@ myenv
 my_env
 .env
 .venv
+logs
