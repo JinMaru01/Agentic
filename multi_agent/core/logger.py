@@ -44,9 +44,11 @@ def get_agent_logger(agent_name: str) -> logging.Logger:
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     )
 
+    date_str = datetime.now().strftime("%Y-%m-%d")
+
     # --- agent-specific file ------------------------------
     agent_handler = logging.FileHandler(
-        os.path.join(LOG_DIR, f"{agent_name}.log"),
+        os.path.join(LOG_DIR, f"{date_str}_{agent_name}.log"),
         encoding="utf-8",
     )
     agent_handler.setLevel(logging.DEBUG)
@@ -54,7 +56,7 @@ def get_agent_logger(agent_name: str) -> logging.Logger:
 
     # --- combined file ------------------------------------
     combined_handler = logging.FileHandler(
-        os.path.join(LOG_DIR, "all_agents.log"),
+        os.path.join(LOG_DIR, f"{date_str}_all_agents.log"),
         encoding="utf-8",
     )
     combined_handler.setLevel(logging.DEBUG)
