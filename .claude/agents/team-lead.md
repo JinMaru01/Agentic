@@ -1,7 +1,6 @@
 ---
 name: team-lead
 description: Engineering team lead for WingBank ADE. Use when coordinating cross-domain refactoring, triaging bugs that span multiple agents, reviewing architecture decisions, setting task priority, or when a task touches more than one agent's domain.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebFetch, Agent]
 ---
 

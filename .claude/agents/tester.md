@@ -1,7 +1,6 @@
 ---
 name: tester
 description: Testing strategy, test writing (pytest + Jest), coverage reporting, and regression verification. Use when writing tests for backend endpoints or frontend components, verifying a refactor didn't break behavior, setting up CI test gates, or defining the testing convention for a new feature.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite]
 ---
 

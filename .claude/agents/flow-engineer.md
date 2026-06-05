@@ -1,7 +1,6 @@
 ---
 name: flow-engineer
 description: Flow execution engine, Redis caching layer, node module system, and performance metrics. Use when modifying flowcore/, _lib/redis/, _lib/flow_scheduler.py, _lib/distributed_scheduler.py, _lib/function_registry.py, or _lib/htmlform/.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite]
 ---
 

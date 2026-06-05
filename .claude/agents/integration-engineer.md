@@ -1,7 +1,6 @@
 ---
 name: integration-engineer
 description: Frontend-backend integration specialist. Use when working on API contracts, auth flows, request/response shapes, CORS, cookie behavior, error propagation across the boundary, or adding a new end-to-end feature that spans both frontend and backend. The single source of truth for how the two sides talk to each other.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebFetch]
 ---
 

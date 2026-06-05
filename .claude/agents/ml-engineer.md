@@ -1,7 +1,6 @@
 ---
 name: ml-engineer
 description: ML model registry, training pipelines, classifier implementations, MLflow integration, and ML UI pages. Use when modifying mlapp_repo/, mlapp_route.py, or frontend/src/pages/mlapp/.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebFetch]
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: data-engineer
 description: Database schemas (SQLAlchemy ORM), DB connectors, Customer 360 ETL, and SQL automation module. Use when modifying flow/dbschema/, _lib/database/, _lib/etl360/, _config.py, or sql_automation pages.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite]
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: backend-dev
 description: FastAPI routes, authentication (JWT+AES+OAuth2 Microsoft), middleware, services, and environment config. Use when modifying backend/app/api/, backend/app/auth/, backend/app/middleware/, backend/app_env/, or backend/flow/services/.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite]
 ---
 

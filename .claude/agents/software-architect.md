@@ -1,7 +1,6 @@
 ---
 name: software-architect
 description: System architecture evaluation, restructuring design, migration planning, ADRs, and interface contracts. Use when evaluating the current architecture, designing target state, planning large refactors, making technology decisions, or reviewing cross-cutting concerns before implementation begins.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Glob, Grep, TodoWrite, WebFetch]
 ---
 

@@ -1,7 +1,6 @@
 ---
 name: frontend-dev
 description: React/TypeScript UI — pages, components, routing, Ant Design, Tailwind, auth context, and Axios API clients. Use when modifying anything under frontend/src/.
-model: claude-opus-4-7
 tools: [Read, Write, Edit, Bash, Glob, Grep, TodoWrite, WebFetch]
 ---
 
