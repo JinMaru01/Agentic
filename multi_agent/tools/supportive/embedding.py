@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 _DATA_PATH = Path(__file__).parent.parent.parent / "data" / "stores.json"
 _INDEX_PATH = Path(__file__).parent.parent.parent / "data" / "faiss.index"
 _META_PATH = Path(__file__).parent.parent.parent / "data" / "index_meta.json"
+_MODEL_PATH = Path(__file__).parent.parent.parent / "data" / "model" / "all-MiniLM-L6-v2"
 
 # =========================
 # UTILS
@@ -79,7 +80,13 @@ _store_texts: list[str] = []
 def get_embed_model() -> SentenceTransformer:
     global _embed_model
     if _embed_model is None:
-        _embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+        if _MODEL_PATH.exists():
+            _embed_model = SentenceTransformer(str(_MODEL_PATH))  # load local
+        else:
+            _MODEL_PATH.mkdir(parents=True, exist_ok=True)
+            model = SentenceTransformer("all-MiniLM-L6-v2")
+            model.save(str(_MODEL_PATH))                          # save once
+            _embed_model = model
     return _embed_model
 
 
@@ -116,9 +123,7 @@ def get_faiss_index() -> faiss.IndexFlatIP:
     if _faiss_index is not None:
         return _faiss_index
 
-    model = get_embed_model()
     current_hash = compute_stores_hash(stores)
-
     saved_version = load_latest_version()
     saved_hash = saved_version["hash"] if saved_version else None
 
@@ -128,20 +133,16 @@ def get_faiss_index() -> faiss.IndexFlatIP:
         or saved_hash != current_hash
     )
 
-    # =========================
-    # LOAD EXISTING INDEX
-    # =========================
     if not needs_rebuild:
         _faiss_index = faiss.read_index(str(_INDEX_PATH))
         _store_texts = saved_version["store_texts"]
         return _faiss_index
 
-    # =========================
-    # REBUILD INDEX
-    # =========================
+    # Only load the model if we actually need to rebuild
+    model = get_embed_model()
     _store_texts = [build_store_text(s) for s in stores]
-
     embeddings = model.encode(_store_texts, convert_to_numpy=True)
+    
     faiss.normalize_L2(embeddings)
 
     dim = embeddings.shape[1]
