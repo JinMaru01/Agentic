@@ -40,7 +40,7 @@ Flow:
 
 import json
 import logging
-from typing import TypedDict, Literal, Annotated
+from typing import TypedDict, Literal, Annotated, Optional
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, START, END
@@ -60,12 +60,15 @@ logger = get_agent_logger("orchestrator")
 # CalculationState: isolated state used only inside the calculator subgraph.
 
 class AgentState(TypedDict):
-    query:      str       # The raw user input
-    route_to:   str       # Which agent the orchestrator decided to use
-    result:     dict      # The final output returned to the user
-    error:      str       # Error message if something goes wrong
-    history:    list      # Conversation history for multi-turn context
-    last_agent: str       # Tracks which agent handled the previous turn
+    query:               str
+    route_to:            str
+    forced_agent:        str   # user-selected agent; empty = auto
+    orchestrator_route:  str   # what the orchestrator recommends
+    suggested_agent:     str   # non-empty when forced != orchestrator
+    result:              dict
+    error:               str
+    history:             list
+    last_agent:          str
 
 
 class CalculationState(TypedDict):
@@ -190,7 +193,6 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
     if not confirmed_data:
         return []
 
-    # Step 2: Validate that price is present before proceeding
     price    = confirmed_data.get("price", 0.0)
     quantity = confirmed_data.get("quantity", 1)
 
@@ -218,6 +220,7 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
 _CONFIRMATION_WORDS = {
     "yes", "ok", "confirm", "go ahead", "sure", "yep", "yeah", "proceed", "do it", "place it",
     "no", "cancel", "nope",
+    "no", "cancel", "nope",
 }
 
 
@@ -226,28 +229,38 @@ _CONFIRMATION_WORDS = {
 # =========================================================
 
 def orchestrator_node(state: AgentState) -> AgentState:
-    """
-    Supervisor node — the entry point for every user query.
-
-    Responsibilities:
-      1. If the user sends a short confirmation word (e.g. "yes", "ok"),
-         re-route to the same agent that handled the previous turn.
-      2. Otherwise, classify the query and determine which agent to use.
-
-    Sets `route_to` in state, which is read by `route_query` below.
-    """
-    query      = state["query"].strip().lower()
-    last_agent = state.get("last_agent", "none")
+    query        = state["query"].strip().lower()
+    last_agent   = state.get("last_agent", "none")
+    forced_agent = state.get("forced_agent", "")
 
     # Short-circuit: treat confirmation words as continuation of previous agent's task
     if query in _CONFIRMATION_WORDS and last_agent != "none":
-        logger.info(f"[route] confirmation word detected | continuing with: {last_agent}")
-        return {**state, "route_to": last_agent}
+        orchestrator_route = last_agent
+    else:
+        orchestrator_route = _orchestrator.classify(query, last_agent=last_agent)
 
-    # Full classification for all other queries
-    route = _orchestrator.classify(query, last_agent=last_agent)
-    logger.info(f"[route] query: '{query}' | last_agent: {last_agent} | routed to: {route}")
-    return {**state, "route_to": route}
+    # Route to forced agent if set and valid, else follow orchestrator
+    if forced_agent and forced_agent in AGENTS:
+        route_to = forced_agent
+    else:
+        route_to = orchestrator_route
+
+    # Suggest a switch when forced agent differs from orchestrator recommendation
+    suggested_agent = ""
+    if (
+        forced_agent
+        and forced_agent in AGENTS
+        and orchestrator_route not in ("unknown", "fallback", "")
+        and orchestrator_route != forced_agent
+    ):
+        suggested_agent = orchestrator_route
+
+    return {
+        **state,
+        "route_to":           route_to,
+        "orchestrator_route": orchestrator_route,
+        "suggested_agent":    suggested_agent,
+    }
 
 
 def calculator_node(state: AgentState) -> AgentState:
