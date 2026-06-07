@@ -1,7 +1,7 @@
-from typing import Literal
-
 from ..agent.calculator import CalculatorAgent
 from ..agent.mall import MallAgent
+from ..agent.browser import BrowserAgent
+from ..agent.search import SearchAgent
 
 
 # =========================================================
@@ -15,6 +15,8 @@ def build_registry(config) -> dict:
     return {
         "calculator": CalculatorAgent(config),
         "mall":       MallAgent(config),
+        "browser":    BrowserAgent(config),
+        "search":     SearchAgent(config),
     }
 
 
@@ -22,7 +24,6 @@ def build_registry(config) -> dict:
 # ROUTER
 # =========================================================
 
-def route_query(route_to: str, registry: dict) -> Literal["calculator", "mall", "fallback"]:
+def route_query(route_to: str, registry: dict) -> str:
     """Maps route_to value to the next graph node."""
-
     return route_to if route_to in registry else "fallback"

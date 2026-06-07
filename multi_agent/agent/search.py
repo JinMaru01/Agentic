@@ -4,23 +4,23 @@ from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 
 from config import AgentConfig
-from ..prompts.mall_prompts import SYSTEM_PROMPT
-from ..tools.mall_tool import tools
+from ..prompts.search_prompts import SYSTEM_PROMPT
+from ..tools.search_tools import tools
 from ..core.logger import get_agent_logger
 
-logger = get_agent_logger("mall")
+logger = get_agent_logger("search")
 
 
-class MallAgent:
+class SearchAgent:
 
     def __init__(self, config: AgentConfig):
 
         self.config = config
-        self.llm = self._build_llm()
-        self.tools = self._build_tools()
-        self.agent = self._build_agent()
+        self.llm    = self._build_llm()
+        self.tools  = self._build_tools()
+        self.agent  = self._build_agent()
 
-        logger.info("MallAgent initialized")
+        logger.info("SearchAgent initialized")
 
     def _build_llm(self):
 
@@ -48,17 +48,16 @@ class MallAgent:
         result = self.agent.invoke({
             "messages": [
                 *history,
-                {"role": "user", "content": query}
+                {"role": "user", "content": query},
             ]
         })
 
         for msg in result.get("messages", []):
             msg_type = type(msg).__name__
 
-            if msg_type == "AIMessage":
-                if getattr(msg, "tool_calls", None):
-                    for tc in msg.tool_calls:
-                        logger.info(f"[tool_call] {tc['name']} | args: {tc['args']}")
+            if msg_type == "AIMessage" and getattr(msg, "tool_calls", None):
+                for tc in msg.tool_calls:
+                    logger.info(f"[tool_call] {tc['name']} | args: {tc['args']}")
 
             elif msg_type == "ToolMessage":
                 logger.debug(f"[tool_result] {msg.content[:200]}")
@@ -79,7 +78,6 @@ class MallAgent:
                 if msg.content:
                     print(f"\nAI:")
                     print(msg.content)
-
                 if getattr(msg, "tool_calls", None):
                     for tool in msg.tool_calls:
                         print(

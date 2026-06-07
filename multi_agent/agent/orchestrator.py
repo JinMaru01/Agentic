@@ -34,15 +34,15 @@ class OrchestratorAgent:
                 ROUTER_PROMPT.format(query=query, last_agent=last_agent)
             )
             parsed = json.loads(response.content.strip())
-            route  = parsed.get("agent", "unknown")
+            route  = parsed.get("agent", "search")
 
             if route not in self.registry:
-                route = "unknown"
+                route = "search"  # any unrecognised route falls back to search
 
             return route
 
         except Exception:
-            return "unknown"
+            return "search"
 
     # -----------------------------------------------------
 

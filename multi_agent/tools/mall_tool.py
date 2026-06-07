@@ -1,9 +1,44 @@
+import csv
+import json
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from langchain_core.tools import tool
 
 from .supportive.embedding import stores, search_stores_by_query
+
+_ORDERS_DIR = Path(__file__).parent.parent / "data"
+_ORDERS_JSON = _ORDERS_DIR / "orders.json"
+_ORDERS_CSV = _ORDERS_DIR / "orders.csv"
+
+_CSV_FIELDS = ["order_id", "store", "item", "quantity", "price", "currency", "status", "placed_at"]
+
+
+def _save_order(order: dict) -> None:
+    """Append a confirmed order to orders.json and orders.csv."""
+    _ORDERS_DIR.mkdir(parents=True, exist_ok=True)
+
+    record = {**order, "placed_at": datetime.now(timezone.utc).isoformat()}
+
+    # --- JSON ---
+    existing: list = []
+    if _ORDERS_JSON.exists():
+        try:
+            existing = json.loads(_ORDERS_JSON.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            existing = []
+    existing.append(record)
+    _ORDERS_JSON.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # --- CSV ---
+    write_header = not _ORDERS_CSV.exists()
+    with _ORDERS_CSV.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=_CSV_FIELDS, extrasaction="ignore")
+        if write_header:
+            writer.writeheader()
+        writer.writerow(record)
 
 
 # =========================
@@ -73,7 +108,7 @@ def place_order(store_name: str, item: str, quantity: int = 1) -> dict:
             "message": f"Item '{item}' not found in {store_name}. Available: {menu_names}",
         }
 
-    return {
+    order = {
         "status":   "confirmed",
         "store":    store_name,
         "item":     item,
@@ -82,5 +117,7 @@ def place_order(store_name: str, item: str, quantity: int = 1) -> dict:
         "quantity": quantity,
         "order_id": "ORD-" + str(uuid.uuid4())[:8].upper(),
     }
+    _save_order(order)
+    return order
 
 tools: list = [search_store, get_menu, place_order]
