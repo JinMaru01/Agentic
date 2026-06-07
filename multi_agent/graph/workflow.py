@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+import json
+import logging
+from typing import TypedDict, Literal, Annotated, Optional
+=======
 """
 Multi-Agent System — Proof of Concept
 ======================================
@@ -40,7 +45,8 @@ Flow:
 
 import json
 import logging
-from typing import TypedDict, Literal, Annotated, Optional
+from typing import TypedDict, Literal, Annotated
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, START, END
@@ -48,10 +54,7 @@ from langgraph.graph.message import add_messages
 
 from config import AgentConfig
 from ..agent.orchestrator import OrchestratorAgent
-from ..core.logger import get_agent_logger
-
-logger = get_agent_logger("orchestrator")
-
+<<<<<<< HEAD
 
 # =========================================================
 # STATE DEFINITIONS
@@ -81,24 +84,68 @@ class CalculationState(TypedDict):
 # =========================================================
 # INITIALISATION
 # =========================================================
+=======
+from ..core.logger import get_agent_logger
+
+logger = get_agent_logger("orchestrator")
+
+
+# =========================================================
+# STATE DEFINITIONS
+# =========================================================
+# AgentState: shared state passed between all nodes in the main graph.
+# CalculationState: isolated state used only inside the calculator subgraph.
+
+class AgentState(TypedDict):
+    query:      str       # The raw user input
+    route_to:   str       # Which agent the orchestrator decided to use
+    result:     dict      # The final output returned to the user
+    error:      str       # Error message if something goes wrong
+    history:    list      # Conversation history for multi-turn context
+    last_agent: str       # Tracks which agent handled the previous turn
+
+
+class CalculationState(TypedDict):
+    items:       list[dict]                          # Line items from a confirmed order
+    tax_rate:    float                               # Tax rate to apply (e.g. 0.09 = 9%)
+    messages:    Annotated[list[BaseMessage], add_messages]
+    calc_result: dict                                # Calculation output (subtotal, tax, total)
+
+
+# =========================================================
+# INITIALISATION
+# =========================================================
 # Load config and spin up the orchestrator, which holds the agent registry.
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 
 _config       = AgentConfig()
 _orchestrator = OrchestratorAgent(_config)
 
+<<<<<<< HEAD
+=======
 # AGENTS is a dict like: { "calculator": <CalculatorAgent>, "mall": <MallAgent> }
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 AGENTS = _orchestrator.registry
 
 
 # =========================================================
 # CALCULATOR SUBGRAPH
 # =========================================================
+<<<<<<< HEAD
+=======
 # This subgraph is invoked internally when a mall order is confirmed.
 # It takes the confirmed line items and computes subtotal, tax, and grand total.
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 
 def _build_calculator_subgraph():
 
     def calc_entry(state: CalculationState) -> CalculationState:
+<<<<<<< HEAD
+
+        items    = state.get("items", [])
+        tax_rate = state.get("tax_rate", 0.09)
+
+=======
         """
         Builds a natural-language prompt from the confirmed order items
         and sends it to the Calculator agent to compute the totals.
@@ -107,6 +154,7 @@ def _build_calculator_subgraph():
         tax_rate = state.get("tax_rate", 0.09)
 
         # Format each item as a readable line for the prompt
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
         item_lines = "\n".join(
             f"- {i['name']}: {i['price']} {i.get('currency', 'USD')} x {i.get('quantity', 1)}"
             for i in items
@@ -123,7 +171,10 @@ def _build_calculator_subgraph():
 
         result = AGENTS["calculator"].run(prompt)
 
+<<<<<<< HEAD
+=======
         # Extract the last AI message as the calculation summary
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
         calc_result = {"status": "ok", "summary": ""}
         for msg in reversed(result.get("messages", [])):
             if type(msg).__name__ == "AIMessage" and msg.content:
@@ -132,7 +183,10 @@ def _build_calculator_subgraph():
 
         return {**state, "messages": result.get("messages", []), "calc_result": calc_result}
 
+<<<<<<< HEAD
+=======
     # Build a minimal single-node subgraph for the calculation step
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     sub = StateGraph(CalculationState)
     sub.add_node("calc_entry", calc_entry)
     sub.add_edge(START, "calc_entry")
@@ -140,7 +194,11 @@ def _build_calculator_subgraph():
     return sub.compile()
 
 
+<<<<<<< HEAD
+# instantiate once at module load
+=======
 # Compile once at module load — reused across all requests
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 _calculator_subgraph = _build_calculator_subgraph()
 
 
@@ -149,6 +207,11 @@ _calculator_subgraph = _build_calculator_subgraph()
 # =========================================================
 
 def _extract_confirmed_items(result: dict) -> list[dict]:
+<<<<<<< HEAD
+
+    confirmed_data = None
+
+=======
     """
     Scans the mall agent's message history for a confirmed order.
 
@@ -163,11 +226,15 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
     confirmed_data = None
 
     # Step 1: Find the most recent confirmed order in tool messages
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     for msg in result.get("messages", []):
         if type(msg).__name__ != "ToolMessage":
             continue
 
+<<<<<<< HEAD
+=======
         # Normalise content to a dict regardless of format
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
         content = msg.content
         if isinstance(content, list):
             data = content[0] if content else {}
@@ -193,6 +260,10 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
     if not confirmed_data:
         return []
 
+<<<<<<< HEAD
+=======
+    # Step 2: Validate that price is present before proceeding
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     price    = confirmed_data.get("price", 0.0)
     quantity = confirmed_data.get("quantity", 1)
 
@@ -203,7 +274,10 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
         )
         return []
 
+<<<<<<< HEAD
+=======
     # Step 3: Only trigger calculator if the AI explicitly requested totals
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     for msg in result.get("messages", []):
         if type(msg).__name__ == "AIMessage" and "[TOTAL_REQUESTED]" in (msg.content or ""):
             return [{
@@ -215,20 +289,27 @@ def _extract_confirmed_items(result: dict) -> list[dict]:
 
     return []
 
+<<<<<<< HEAD
+=======
 
 # Simple confirmation vocabulary — used to detect short replies like "yes", "ok", "cancel"
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 _CONFIRMATION_WORDS = {
     "yes", "ok", "confirm", "go ahead", "sure", "yep", "yeah", "proceed", "do it", "place it",
     "no", "cancel", "nope",
     "no", "cancel", "nope",
 }
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 # =========================================================
 # NODES
 # =========================================================
 
 def orchestrator_node(state: AgentState) -> AgentState:
+<<<<<<< HEAD
     query        = state["query"].strip().lower()
     last_agent   = state.get("last_agent", "none")
     forced_agent = state.get("forced_agent", "")
@@ -264,15 +345,63 @@ def orchestrator_node(state: AgentState) -> AgentState:
 
 
 def calculator_node(state: AgentState) -> AgentState:
+
+=======
+    """
+    Supervisor node — the entry point for every user query.
+
+    Responsibilities:
+      1. If the user sends a short confirmation word (e.g. "yes", "ok"),
+         re-route to the same agent that handled the previous turn.
+      2. Otherwise, classify the query and determine which agent to use.
+
+    Sets `route_to` in state, which is read by `route_query` below.
+    """
+    query      = state["query"].strip().lower()
+    last_agent = state.get("last_agent", "none")
+
+    # Short-circuit: treat confirmation words as continuation of previous agent's task
+    if query in _CONFIRMATION_WORDS and last_agent != "none":
+        logger.info(f"[route] confirmation word detected | continuing with: {last_agent}")
+        return {**state, "route_to": last_agent}
+
+    # Full classification for all other queries
+    route = _orchestrator.classify(query, last_agent=last_agent)
+    logger.info(f"[route] query: '{query}' | last_agent: {last_agent} | routed to: {route}")
+    return {**state, "route_to": route}
+
+
+def calculator_node(state: AgentState) -> AgentState:
     """
     Runs the Calculator agent for direct math queries.
     Handles basic arithmetic and cost breakdowns.
     """
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     try:
         result = AGENTS["calculator"].run(state["query"], state.get("history", []))
         return {**state, "result": result, "error": ""}
 
     except Exception as e:
+<<<<<<< HEAD
+        return {**state, "result": {}, "error": str(e)}
+
+
+def mall_node(state: AgentState) -> AgentState:
+    """
+    Runs the Mall agent for shopping-related queries.
+    Handles product search, store lookup, and order booking.
+
+    Auto-handoff to Calculator:
+      If the mall agent confirms an order and the AI requests a total,
+      this node automatically invokes the calculator subgraph to
+      compute subtotal, tax, and grand total — no extra user input needed.
+    """
+    try:
+        result = AGENTS["mall"].run(state["query"], state.get("history", []))
+        items  = _extract_confirmed_items(result)
+
+        if items:
+=======
         logger.error(f"[calculator_node] {e}")
         return {**state, "result": {}, "error": str(e)}
 
@@ -300,6 +429,7 @@ def mall_node(state: AgentState) -> AgentState:
             logger.info(f"[handoff] mall → calculator | items: {item_labels}")
 
             # Invoke the calculator subgraph with the confirmed items
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
             tax_rate   = getattr(_config, "tax_rate", 0.09)
             calc_state = _calculator_subgraph.invoke({
                 "items":       items,
@@ -307,6 +437,9 @@ def mall_node(state: AgentState) -> AgentState:
                 "messages":    [],
                 "calc_result": {},
             })
+<<<<<<< HEAD
+            result["calc_result"] = calc_state["calc_result"]
+=======
 
             # Attach the calculation result to the mall result for the response
             result["calc_result"] = calc_state["calc_result"]
@@ -316,10 +449,18 @@ def mall_node(state: AgentState) -> AgentState:
             )
         else:
             logger.debug("[handoff] no confirmed order — calculator not invoked")
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 
         return {**state, "result": result, "error": ""}
 
     except Exception as e:
+<<<<<<< HEAD
+        return {**state, "result": {}, "error": str(e)}
+
+
+def fallback_node(state: AgentState) -> AgentState:
+
+=======
         logger.error(f"[mall_node] {e}")
         return {**state, "result": {}, "error": str(e)}
 
@@ -329,6 +470,7 @@ def fallback_node(state: AgentState) -> AgentState:
     Catches any query that couldn't be routed to a known agent.
     Returns a helpful error listing the available agents.
     """
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     return {
         **state,
         "result": {},
@@ -344,10 +486,14 @@ def fallback_node(state: AgentState) -> AgentState:
 # =========================================================
 
 def route_query(state: AgentState) -> Literal["calculator", "mall", "fallback"]:
+<<<<<<< HEAD
+
+=======
     """
     Conditional edge function — reads `route_to` from state
     and returns the name of the next node to execute.
     """
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     return _orchestrator.route(state["route_to"])
 
 
@@ -356,6 +502,11 @@ def route_query(state: AgentState) -> Literal["calculator", "mall", "fallback"]:
 # =========================================================
 
 def build_graph():
+<<<<<<< HEAD
+
+    graph = StateGraph(AgentState)
+
+=======
     """
     Assembles and compiles the full multi-agent graph.
 
@@ -371,15 +522,21 @@ def build_graph():
     graph = StateGraph(AgentState)
 
     # Register all nodes
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     graph.add_node("orchestrator", orchestrator_node)
     graph.add_node("calculator",   calculator_node)
     graph.add_node("mall",         mall_node)
     graph.add_node("fallback",     fallback_node)
 
+<<<<<<< HEAD
+    graph.add_edge(START, "orchestrator")
+
+=======
     # Entry point: always start at the orchestrator
     graph.add_edge(START, "orchestrator")
 
     # Supervisor routes to one of three agents based on query classification
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     graph.add_conditional_edges(
         "orchestrator",
         route_query,
@@ -390,9 +547,16 @@ def build_graph():
         },
     )
 
+<<<<<<< HEAD
+=======
     # All agents terminate after completing their task
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     graph.add_edge("calculator", END)
     graph.add_edge("mall",       END)
     graph.add_edge("fallback",   END)
 
+<<<<<<< HEAD
     return graph.compile()
+=======
+    return graph.compile()
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3

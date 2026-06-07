@@ -10,9 +10,13 @@ from langgraph.prebuilt import create_react_agent
 from config import AgentConfig
 from ..prompts.mall_prompts import SYSTEM_PROMPT
 from ..tools.mall_tool import tools
+<<<<<<< HEAD
+
+=======
 from ..core.logger import get_agent_logger
 
 logger = get_agent_logger("mall")
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
 
 # =========================================================
 # MALL AGENT
@@ -27,8 +31,11 @@ class MallAgent:
         self.tools = self._build_tools()
         self.agent = self._build_agent()
 
+<<<<<<< HEAD
+=======
         logger.info("MallAgent initialized")
 
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     # -----------------------------------------------------
 
     def _build_llm(self):
@@ -57,15 +64,23 @@ class MallAgent:
 
     # -----------------------------------------------------
 
+<<<<<<< HEAD
+    def run(self, query: str, history: list = []) -> Dict[str, Any]:
+
+        return self.agent.invoke({
+=======
     def run(self, query: str, history: list = []) -> dict:
         logger.info(f"[run] query: {query}")
 
         result = self.agent.invoke({
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
             "messages": [
                 *history,
                 {"role": "user", "content": query}
             ]
         })
+<<<<<<< HEAD
+=======
 
         for msg in result.get("messages", []):
             msg_type = type(msg).__name__
@@ -85,6 +100,7 @@ class MallAgent:
 
         logger.info(f"[run] complete")
         return result
+>>>>>>> 60b77f7c7c52089b682654bc96d87a8f65316ce3
     # -----------------------------------------------------
 
     def pretty_print(self, result: Dict[str, Any]):

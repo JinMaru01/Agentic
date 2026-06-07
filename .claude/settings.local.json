@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(pnpm lint *)",
-      "Bash(venv/Scripts/python api_server.py)"
-    ]
-  }
-}
