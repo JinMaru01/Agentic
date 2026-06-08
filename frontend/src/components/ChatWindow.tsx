@@ -1,5 +1,5 @@
 import { SendOutlined } from '@ant-design/icons'
-import { Button, Empty, Input, Spin } from 'antd'
+import { Button, Empty, Input } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { chatApi } from '../api/client'
 import type { AgentInfo, ChatMessage } from '../types'
@@ -22,110 +22,96 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
   const [messages,      setMessages]      = useState<ChatMessage[]>(initialMessages)
   const [selectedAgent, setSelectedAgent] = useState('auto')
   const [inputValue,    setInputValue]    = useState('')
-  const [loading,       setLoading]       = useState(false)
+  const [streaming,     setStreaming]     = useState(false)
   const [suggestion,    setSuggestion]    = useState<Suggestion | null>(null)
   const bottomRef    = useRef<HTMLDivElement>(null)
   const abortRef     = useRef<AbortController | null>(null)
 
-  // Reset when session switches
   useEffect(() => {
     setMessages(initialMessages)
     setSuggestion(null)
     setInputValue('')
+    setStreaming(false)
   }, [sessionId])
 
-  // Auto-scroll on new content
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+  }, [messages, streaming])
+
+  function updateLastAssistant(patch: Partial<ChatMessage>) {
+    setMessages(prev => {
+      const updated = [...prev]
+      const last    = updated[updated.length - 1]
+      if (last?.role === 'assistant') {
+        updated[updated.length - 1] = { ...last, ...patch }
+      }
+      return updated
+    })
+  }
 
   function handleSend() {
     const text = inputValue.trim()
-    if (!text || loading) return
+    if (!text || streaming) return
 
-    // Abort any in-flight stream
     abortRef.current?.abort()
+
+    const placeholder: ChatMessage = {
+      role:      'assistant',
+      content:   '',
+      streaming: true,
+      status:    'Routing…',
+      timestamp: new Date().toISOString(),
+    }
 
     setMessages(prev => [
       ...prev,
       { role: 'user', content: text, timestamp: new Date().toISOString() },
+      placeholder,
     ])
     setInputValue('')
-    setLoading(true)
+    setStreaming(true)
     setSuggestion(null)
 
-    let firstToken = true
-
     abortRef.current = chatApi.stream(sessionId, text, selectedAgent, {
+      onStatus(status) {
+        updateLastAssistant({ status })
+      },
+
       onToken(token) {
-        if (firstToken) {
-          firstToken = false
-          setLoading(false)
-          // Add the streaming assistant message on first token
-          setMessages(prev => [
-            ...prev,
-            { role: 'assistant', content: token, timestamp: new Date().toISOString() },
-          ])
-        } else {
-          // Append subsequent tokens to the last message
-          setMessages(prev => {
-            const updated = [...prev]
-            const last    = updated[updated.length - 1]
-            if (last?.role === 'assistant') {
-              updated[updated.length - 1] = { ...last, content: last.content + token }
+        setMessages(prev => {
+          const updated = [...prev]
+          const last    = updated[updated.length - 1]
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = {
+              ...last,
+              content: last.content + token,
+              status:  undefined,
             }
-            return updated
-          })
-        }
+          }
+          return updated
+        })
       },
 
       onReplace(text) {
-        // Swap the entire assistant message (e.g. raw-JSON was streamed, backend sends clean version)
-        setMessages(prev => {
-          const updated = [...prev]
-          const last    = updated[updated.length - 1]
-          if (last?.role === 'assistant') {
-            updated[updated.length - 1] = { ...last, content: text }
-          }
-          return updated
-        })
+        updateLastAssistant({ content: text, status: undefined })
       },
 
       onDone(meta) {
-        // Stamp agent_used onto the last message
-        setMessages(prev => {
-          const updated = [...prev]
-          const last    = updated[updated.length - 1]
-          if (last?.role === 'assistant') {
-            updated[updated.length - 1] = { ...last, agent_used: meta.agent_used }
-          }
-          return updated
-        })
+        updateLastAssistant({ streaming: false, status: undefined, agent_used: meta.agent_used })
         if (meta.suggested_agent && meta.suggestion_reason) {
           setSuggestion({ agentId: meta.suggested_agent, reason: meta.suggestion_reason })
         }
-        setLoading(false)
+        setStreaming(false)
       },
 
       onError(err) {
-        const errMsg: ChatMessage = {
-          role:       'assistant',
-          content:    `Error: ${err}`,
+        updateLastAssistant({
+          content:   `Error: ${err}`,
+          streaming: false,
+          status:    undefined,
           agent_used: 'error',
-          timestamp:  new Date().toISOString(),
-        }
-        if (firstToken) {
-          setMessages(prev => [...prev, errMsg])
-        } else {
-          setMessages(prev => {
-            const updated = [...prev]
-            if (updated[updated.length - 1]?.role === 'assistant') {
-              updated[updated.length - 1] = errMsg
-            }
-            return updated
-          })
-        }
-        setLoading(false)
+        })
+        setStreaming(false)
       },
     })
   }
@@ -153,7 +139,7 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
           agents={agents}
           selected={selectedAgent}
           onSelect={id => { setSelectedAgent(id); setSuggestion(null) }}
-          disabled={loading}
+          disabled={streaming}
         />
       </div>
 
@@ -175,15 +161,6 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
         ) : (
           messages.map((msg, i) => <MessageBubble key={i} message={msg} />)
         )}
-
-        {loading && (
-          <div className="flex gap-2 mb-4">
-            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white text-sm text-gray-400 chat-thinking-bubble">
-              <Spin size="small" /> Thinking…
-            </div>
-          </div>
-        )}
-
         <div ref={bottomRef} />
       </div>
 
@@ -208,15 +185,15 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
             onKeyDown={handleKeyDown}
             placeholder={`Message ${agents.find(a => a.id === selectedAgent)?.name ?? 'agent'}… (Enter to send, Shift+Enter for newline)`}
             autoSize={{ minRows: 1, maxRows: 5 }}
-            disabled={loading}
+            disabled={streaming}
             style={{ borderRadius: 12, resize: 'none' }}
           />
           <Button
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSend}
-            loading={loading}
-            disabled={!inputValue.trim()}
+            loading={streaming}
+            disabled={!inputValue.trim() || streaming}
             style={{
               background:   '#4f46e5',
               borderColor:  '#4f46e5',

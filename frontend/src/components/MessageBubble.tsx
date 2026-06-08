@@ -39,6 +39,14 @@ function AgentBadge({ agentId }: { agentId: string }) {
   )
 }
 
+function ThinkingDots() {
+  return (
+    <span className="thinking-dots">
+      <span /><span /><span />
+    </span>
+  )
+}
+
 const mdComponents: React.ComponentProps<typeof ReactMarkdown>['components'] = {
   p:          ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
   ul:         ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
@@ -87,6 +95,8 @@ export default function MessageBubble({ message }: Props) {
 
   const agentId    = message.agent_used ?? 'auto'
   const agentColor = AGENT_COLOR[agentId] ?? '#6366f1'
+  const isStreaming = message.streaming
+  const hasContent  = message.content.length > 0
 
   return (
     <div className="flex gap-2 mb-4">
@@ -100,9 +110,19 @@ export default function MessageBubble({ message }: Props) {
           className="px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white text-sm text-gray-800 message-content"
           style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #f3f4f6' }}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-            {message.content}
-          </ReactMarkdown>
+          {isStreaming && !hasContent ? (
+            <span className="flex items-center gap-2 text-gray-400 text-xs">
+              <ThinkingDots />
+              <span className="italic">{message.status ?? 'Routing…'}</span>
+            </span>
+          ) : (
+            <>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                {message.content}
+              </ReactMarkdown>
+              {isStreaming && <span className="cursor-blink">▌</span>}
+            </>
+          )}
         </div>
         <span className="text-xs text-gray-400 mt-1 ml-1">{time}</span>
       </div>

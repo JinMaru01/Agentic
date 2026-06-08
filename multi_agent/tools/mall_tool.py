@@ -69,31 +69,49 @@ def search_store(query: str) -> list[dict]:
 
 @tool
 def get_menu(store_name: str) -> list[str]:
-    """Return menu items or services for a store.
+    """Return available menu items or services for a store.
 
-    Uses an O(1) index lookup instead of a linear scan.
+    Uses an O(1) index lookup. Unavailable items (isAvailable=false) are
+    excluded at the tool level so the agent never sees or suggests them.
     Returns an empty list if the store is not found.
     """
     store = _store_index.get(store_name.lower())
     if store is None:
         return []
-    return store.get("menu", store.get("services", []))
+    items = store.get("menu", store.get("services", []))
+    return [
+        item for item in items
+        if not isinstance(item, dict) or item.get("isAvailable", True)
+    ]
 
 
 @tool
 def place_order(store_name: str, item: str, quantity: int = 1) -> dict:
-    """Place an order after verifying store and item exist.
+    """Place an order after verifying store and item exist and are available.
+
+    STRICT PRECONDITIONS — only call this tool when ALL of the following are true:
+      1. The user has explicitly confirmed with "yes", "ok", "confirm", "go ahead",
+         "proceed", "place it", or equivalent.
+      2. store_name and item were obtained from search_store / get_menu in this session.
+      3. quantity is a positive integer (1–20).
+    Never call this tool autonomously or before explicit confirmation.
 
     Returns a confirmed order dict on success, or an error dict on failure.
-    Note: this tool is only called after explicit user confirmation —
-    never dispatched from the main agent loop autonomously.
     """
+    if not isinstance(quantity, int) or quantity < 1 or quantity > 20:
+        return {
+            "status":  "error",
+            "message": f"Quantity must be a whole number between 1 and 20, got '{quantity}'.",
+        }
+
     menu = get_menu.run(store_name)
 
     if not menu:
-        return {"status": "error", "message": f"Store '{store_name}' not found."}
+        return {
+            "status":  "error",
+            "message": f"Store '{store_name}' was not found in the mall database.",
+        }
 
-    # find the full matched item dict to extract price + currency
     matched_item = None
     for m in menu:
         name = m["name"] if isinstance(m, dict) else m
@@ -105,15 +123,21 @@ def place_order(store_name: str, item: str, quantity: int = 1) -> dict:
         menu_names = [m["name"] if isinstance(m, dict) else m for m in menu]
         return {
             "status":  "error",
-            "message": f"Item '{item}' not found in {store_name}. Available: {menu_names}",
+            "message": (
+                f"'{item}' is not available at {store_name}. "
+                f"Currently available: {menu_names}"
+            ),
         }
+
+    price    = matched_item.get("price", 0.0) if isinstance(matched_item, dict) else 0.0
+    currency = matched_item.get("currency", "USD") if isinstance(matched_item, dict) else "USD"
 
     order = {
         "status":   "confirmed",
         "store":    store_name,
         "item":     item,
-        "price":    matched_item.get("price", 0.0),
-        "currency": matched_item.get("currency", "USD"),
+        "price":    price,
+        "currency": currency,
         "quantity": quantity,
         "order_id": "ORD-" + str(uuid.uuid4())[:8].upper(),
     }

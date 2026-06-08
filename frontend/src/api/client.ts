@@ -27,7 +27,8 @@ export const sessionsApi = {
 
 export interface StreamCallbacks {
   onToken:   (token: string) => void
-  onReplace: (text: string) => void   // swap entire streamed content (e.g. raw-JSON cleanup)
+  onStatus:  (status: string) => void
+  onReplace: (text: string) => void
   onDone:    (meta: { agent_used: string; suggested_agent?: string | null; suggestion_reason?: string | null }) => void
   onError:   (err: string) => void
 }
@@ -75,6 +76,8 @@ export const chatApi = {
               const data = JSON.parse(line.slice(6)) as Record<string, unknown>
               if (typeof data.token === 'string') {
                 callbacks.onToken(data.token)
+              } else if (typeof data.status === 'string') {
+                callbacks.onStatus(data.status)
               } else if (typeof data.replace === 'string') {
                 callbacks.onReplace(data.replace)
               } else if (data.done) {

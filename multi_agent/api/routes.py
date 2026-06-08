@@ -270,6 +270,9 @@ async def chat_stream(request: ChatRequest):
         total_requested      = False
 
         try:
+            agent_label = agent_key.capitalize() if agent_key not in ("fallback", "") else "Auto"
+            yield f"data: {json.dumps({'status': f'Routing to {agent_label}…'})}\n\n"
+
             async for event in _graph.astream_events(initial_state, version="v2"):
                 kind = event.get("event", "")
                 node = event.get("metadata", {}).get("langgraph_node", "")

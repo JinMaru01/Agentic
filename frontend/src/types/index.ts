@@ -12,6 +12,8 @@ export interface ChatMessage {
   content: string
   agent_used?: string
   timestamp: string
+  streaming?: boolean
+  status?: string
 }
 
 export interface ChatResponse {
