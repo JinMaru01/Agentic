@@ -7,6 +7,8 @@ import {
 } from '@ant-design/icons'
 import { Avatar, Tag } from 'antd'
 import dayjs from 'dayjs'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { ChatMessage } from '../types'
 
 const AGENT_COLOR: Record<string, string> = {
@@ -37,20 +39,25 @@ function AgentBadge({ agentId }: { agentId: string }) {
   )
 }
 
-function renderContent(text: string) {
-  // Bold (**text**) and newlines → <br>
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>
-    }
-    return part.split('\n').map((line, j, arr) => (
-      <span key={`${i}-${j}`}>
-        {line}
-        {j < arr.length - 1 && <br />}
-      </span>
-    ))
-  })
+const mdComponents: React.ComponentProps<typeof ReactMarkdown>['components'] = {
+  p:          ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+  ul:         ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+  ol:         ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+  li:         ({ children }) => <li className="leading-relaxed">{children}</li>,
+  strong:     ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+  em:         ({ children }) => <em className="italic">{children}</em>,
+  h1:         ({ children }) => <h1 className="text-sm font-semibold mb-1 mt-2">{children}</h1>,
+  h2:         ({ children }) => <h2 className="text-sm font-semibold mb-1 mt-2">{children}</h2>,
+  h3:         ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2">{children}</h3>,
+  code:       ({ children, className }) => {
+    const isBlock = className?.includes('language-')
+    return isBlock
+      ? <code className="block bg-gray-100 rounded px-2 py-1.5 text-xs font-mono overflow-x-auto">{children}</code>
+      : <code className="bg-gray-100 rounded px-1 py-0.5 text-xs font-mono text-indigo-700">{children}</code>
+  },
+  pre:        ({ children }) => <pre className="bg-gray-100 rounded-lg p-3 mb-2 overflow-x-auto text-xs">{children}</pre>,
+  blockquote: ({ children }) => <blockquote className="border-l-2 border-gray-300 pl-3 text-gray-500 italic mb-2">{children}</blockquote>,
+  a:          ({ children, href }) => <a href={href} target="_blank" rel="noreferrer" className="text-indigo-600 underline">{children}</a>,
 }
 
 interface Props {
@@ -64,10 +71,10 @@ export default function MessageBubble({ message }: Props) {
   if (isUser) {
     return (
       <div className="flex justify-end gap-2 mb-4">
-        <div className="flex flex-col items-end max-w-[72%]">
+        <div className="flex flex-col items-end max-w-[65%]">
           <div
             className="px-4 py-2.5 rounded-2xl rounded-tr-sm text-white text-sm leading-relaxed"
-            style={{ background: '#4f46e5' }}
+            style={{ background: '#4f46e5', wordBreak: 'break-word', overflowWrap: 'anywhere' }}
           >
             {message.content}
           </div>
@@ -87,13 +94,15 @@ export default function MessageBubble({ message }: Props) {
         icon={AGENT_ICON[agentId] ?? <RobotOutlined />}
         style={{ background: agentColor, flexShrink: 0 }}
       />
-      <div className="flex flex-col max-w-[72%]">
+      <div className="flex flex-col max-w-[65%]">
         {message.agent_used && <AgentBadge agentId={message.agent_used} />}
         <div
-          className="px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white text-sm leading-relaxed text-gray-800 message-content"
+          className="px-4 py-2.5 rounded-2xl rounded-tl-sm bg-white text-sm text-gray-800 message-content"
           style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #f3f4f6' }}
         >
-          {renderContent(message.content)}
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+            {message.content}
+          </ReactMarkdown>
         </div>
         <span className="text-xs text-gray-400 mt-1 ml-1">{time}</span>
       </div>

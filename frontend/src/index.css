@@ -27,3 +27,16 @@ body {
   background: #d1d5db;
   border-radius: 3px;
 }
+
+.chat-messages-bg {
+  background: #f8fafc;
+}
+
+.chat-thinking-bubble {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f3f4f6;
+}
+
+.chat-input-bar {
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.04);
+}

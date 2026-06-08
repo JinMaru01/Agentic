@@ -2,7 +2,7 @@ import { SendOutlined } from '@ant-design/icons'
 import { Button, Empty, Input, Spin } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { chatApi } from '../api/client'
-import type { AgentInfo, ChatMessage, ChatResponse } from '../types'
+import type { AgentInfo, ChatMessage } from '../types'
 import AgentSelector from './AgentSelector'
 import MessageBubble from './MessageBubble'
 import SuggestionAlert from './SuggestionAlert'
@@ -19,12 +19,13 @@ interface Suggestion {
 }
 
 export default function ChatWindow({ sessionId, agents, initialMessages = [] }: Props) {
-  const [messages,       setMessages]       = useState<ChatMessage[]>(initialMessages)
-  const [selectedAgent,  setSelectedAgent]  = useState('auto')
-  const [inputValue,     setInputValue]     = useState('')
-  const [loading,        setLoading]        = useState(false)
-  const [suggestion,     setSuggestion]     = useState<Suggestion | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const [messages,      setMessages]      = useState<ChatMessage[]>(initialMessages)
+  const [selectedAgent, setSelectedAgent] = useState('auto')
+  const [inputValue,    setInputValue]    = useState('')
+  const [loading,       setLoading]       = useState(false)
+  const [suggestion,    setSuggestion]    = useState<Suggestion | null>(null)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const abortRef     = useRef<AbortController | null>(null)
 
   // Reset when session switches
   useEffect(() => {
@@ -33,52 +34,100 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
     setInputValue('')
   }, [sessionId])
 
-  // Auto-scroll to newest message
+  // Auto-scroll on new content
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  async function handleSend() {
+  function handleSend() {
     const text = inputValue.trim()
     if (!text || loading) return
 
-    const userMsg: ChatMessage = {
-      role:      'user',
-      content:   text,
-      timestamp: new Date().toISOString(),
-    }
-    setMessages(prev => [...prev, userMsg])
+    // Abort any in-flight stream
+    abortRef.current?.abort()
+
+    setMessages(prev => [
+      ...prev,
+      { role: 'user', content: text, timestamp: new Date().toISOString() },
+    ])
     setInputValue('')
     setLoading(true)
     setSuggestion(null)
 
-    try {
-      const res: ChatResponse = await chatApi.send(sessionId, text, selectedAgent)
+    let firstToken = true
 
-      const assistantMsg: ChatMessage = {
-        role:       'assistant',
-        content:    res.response,
-        agent_used: res.agent_used,
-        timestamp:  new Date().toISOString(),
-      }
-      setMessages(prev => [...prev, assistantMsg])
+    abortRef.current = chatApi.stream(sessionId, text, selectedAgent, {
+      onToken(token) {
+        if (firstToken) {
+          firstToken = false
+          setLoading(false)
+          // Add the streaming assistant message on first token
+          setMessages(prev => [
+            ...prev,
+            { role: 'assistant', content: token, timestamp: new Date().toISOString() },
+          ])
+        } else {
+          // Append subsequent tokens to the last message
+          setMessages(prev => {
+            const updated = [...prev]
+            const last    = updated[updated.length - 1]
+            if (last?.role === 'assistant') {
+              updated[updated.length - 1] = { ...last, content: last.content + token }
+            }
+            return updated
+          })
+        }
+      },
 
-      if (res.suggested_agent && res.suggestion_reason) {
-        setSuggestion({ agentId: res.suggested_agent, reason: res.suggestion_reason })
-      }
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })
-        ?.response?.data?.detail ?? String(err)
-      const errMsg: ChatMessage = {
-        role:       'assistant',
-        content:    `Error: ${detail}`,
-        agent_used: 'error',
-        timestamp:  new Date().toISOString(),
-      }
-      setMessages(prev => [...prev, errMsg])
-    } finally {
-      setLoading(false)
-    }
+      onReplace(text) {
+        // Swap the entire assistant message (e.g. raw-JSON was streamed, backend sends clean version)
+        setMessages(prev => {
+          const updated = [...prev]
+          const last    = updated[updated.length - 1]
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = { ...last, content: text }
+          }
+          return updated
+        })
+      },
+
+      onDone(meta) {
+        // Stamp agent_used onto the last message
+        setMessages(prev => {
+          const updated = [...prev]
+          const last    = updated[updated.length - 1]
+          if (last?.role === 'assistant') {
+            updated[updated.length - 1] = { ...last, agent_used: meta.agent_used }
+          }
+          return updated
+        })
+        if (meta.suggested_agent && meta.suggestion_reason) {
+          setSuggestion({ agentId: meta.suggested_agent, reason: meta.suggestion_reason })
+        }
+        setLoading(false)
+      },
+
+      onError(err) {
+        const errMsg: ChatMessage = {
+          role:       'assistant',
+          content:    `Error: ${err}`,
+          agent_used: 'error',
+          timestamp:  new Date().toISOString(),
+        }
+        if (firstToken) {
+          setMessages(prev => [...prev, errMsg])
+        } else {
+          setMessages(prev => {
+            const updated = [...prev]
+            if (updated[updated.length - 1]?.role === 'assistant') {
+              updated[updated.length - 1] = errMsg
+            }
+            return updated
+          })
+        }
+        setLoading(false)
+      },
+    })
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -109,7 +158,7 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 chat-scroll" style={{ background: '#f8fafc' }}>
+      <div className="flex-1 overflow-y-auto px-5 py-4 chat-scroll chat-messages-bg">
         {messages.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -129,10 +178,7 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
 
         {loading && (
           <div className="flex gap-2 mb-4">
-            <div
-              className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white text-sm text-gray-400"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #f3f4f6' }}
-            >
+            <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white text-sm text-gray-400 chat-thinking-bubble">
               <Spin size="small" /> Thinking…
             </div>
           </div>
@@ -154,10 +200,7 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
       )}
 
       {/* Input */}
-      <div
-        className="px-5 py-4 border-t border-gray-100 bg-white"
-        style={{ boxShadow: '0 -1px 4px rgba(0,0,0,0.04)' }}
-      >
+      <div className="px-5 py-4 border-t border-gray-100 bg-white chat-input-bar">
         <div className="flex gap-2 items-end">
           <Input.TextArea
             value={inputValue}
@@ -175,8 +218,8 @@ export default function ChatWindow({ sessionId, agents, initialMessages = [] }: 
             loading={loading}
             disabled={!inputValue.trim()}
             style={{
-              background:  '#4f46e5',
-              borderColor: '#4f46e5',
+              background:   '#4f46e5',
+              borderColor:  '#4f46e5',
               borderRadius: 10,
               height: 40,
               width:  40,
