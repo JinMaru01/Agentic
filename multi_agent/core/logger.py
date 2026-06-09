@@ -1,6 +1,8 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+_TZ = timezone(timedelta(hours=7))
 
 
 # =========================================================
@@ -18,7 +20,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 class AgentFormatter(logging.Formatter):
 
     def format(self, record):
-        record.asctime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        record.asctime = datetime.now(_TZ).strftime("%Y-%m-%d %H:%M:%S")
         return super().format(record)
 
 
@@ -44,7 +46,7 @@ def get_agent_logger(agent_name: str) -> logging.Logger:
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     )
 
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = datetime.now(_TZ).strftime("%Y-%m-%d")
 
     # --- agent-specific file ------------------------------
     agent_handler = logging.FileHandler(
