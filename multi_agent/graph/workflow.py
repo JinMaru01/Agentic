@@ -328,6 +328,25 @@ async def search_node(state: AgentState) -> AgentState:
         return {**state, "result": {}, "error": str(e)}
 
 
+async def credential_node(state: AgentState) -> AgentState:
+    """Runs the Credential-Store Agent for secret management tasks.
+
+    Runs in a thread pool — consistent with browser/search nodes — so any
+    blocking I/O (file-based backend, future Vault HTTP calls) stays off the
+    asyncio event loop thread.
+    """
+    try:
+        loop   = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: AGENTS["credential"].run(state["query"], state.get("history", [])),
+        )
+        return {**state, "result": result, "error": "", "last_agent": "credential"}
+    except Exception as e:
+        logger.error(f"[credential_node] {e}")
+        return {**state, "result": {}, "error": str(e)}
+
+
 def fallback_node(state: AgentState) -> AgentState:
     """Catches queries that couldn't be routed to any known agent."""
     return {
@@ -357,7 +376,7 @@ def build_graph():
     """
     Assembles and compiles the full multi-agent graph.
 
-    Nodes:   orchestrator, calculator, mall, browser, search, fallback
+    Nodes:   orchestrator, calculator, mall, browser, search, credential, fallback
     Edges:   START → orchestrator → (conditional) → agent → END
     """
     graph = StateGraph(AgentState)
@@ -367,6 +386,7 @@ def build_graph():
     graph.add_node("mall",         mall_node)
     graph.add_node("browser",      browser_node)
     graph.add_node("search",       search_node)
+    graph.add_node("credential",   credential_node)
     graph.add_node("fallback",     fallback_node)
 
     graph.add_edge(START, "orchestrator")
@@ -379,6 +399,7 @@ def build_graph():
             "mall":       "mall",
             "browser":    "browser",
             "search":     "search",
+            "credential": "credential",
             "unknown":    "search",   # safety net — search is the open fallback
             "fallback":   "fallback",
         },
@@ -388,6 +409,7 @@ def build_graph():
     graph.add_edge("mall",       END)
     graph.add_edge("browser",    END)
     graph.add_edge("search",     END)
+    graph.add_edge("credential", END)
     graph.add_edge("fallback",   END)
 
     return graph.compile()

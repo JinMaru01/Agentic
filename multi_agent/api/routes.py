@@ -18,6 +18,7 @@ from .schemas import (
 )
 from .session import session_store
 from ..graph.workflow import AGENTS, build_graph, orchestrator_node, route_query
+from ..tools.credential_tools import redeem_handle
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -25,7 +26,7 @@ router = APIRouter(prefix="/api")
 # Build the LangGraph graph once at import time
 _graph = build_graph()
 
-_AGENT_NODES    = {"calculator", "mall", "browser", "search"}
+_AGENT_NODES    = {"calculator", "mall", "browser", "search", "credential"}
 _EXCLUDED_NODES = {"orchestrator"}  # LLM calls in these nodes must not be streamed to the user
 
 
@@ -119,6 +120,44 @@ def _build_initial_state(query: str, forced_agent: str, history: list, last_agen
 @router.get("/agents", response_model=List[AgentInfo])
 async def list_agents():
     return list(AGENT_METADATA.values())
+
+
+# =========================================================
+# CREDENTIAL DELIVERY  (§4 — out-of-band handle redemption)
+# Plaintext never passes through the model. The agent issues a
+# SecretHandle; the caller redeems it here independently.
+# =========================================================
+
+@router.post("/credentials/redeem/{handle_id}")
+async def redeem_secret(handle_id: str):
+    """
+    Redeem a SecretHandle issued by the Credential-Store Agent.
+    Handles are single-use and expire after 5 minutes.
+    This endpoint is the delivery layer — it runs outside the LLM context.
+    """
+    result = await asyncio.to_thread(redeem_handle, handle_id)
+    if "error" in result:
+        raise HTTPException(status_code=410, detail=result["error"])
+    return result
+
+
+@router.get("/credentials/audit")
+async def get_audit_log(limit: int = 50):
+    """
+    Return the last N audit events from the append-only audit log.
+    Useful for security review and compliance checks.
+    """
+    import json
+    from pathlib import Path
+    audit_file = Path(__file__).parent.parent / "data" / "credentials" / "audit.jsonl"
+    if not audit_file.exists():
+        return {"events": []}
+    try:
+        lines = audit_file.read_text(encoding="utf-8").strip().splitlines()
+        events = [json.loads(line) for line in lines[-limit:]]
+        return {"events": events, "total": len(lines)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 # =========================================================

@@ -2,6 +2,7 @@ from ..agent.calculator import CalculatorAgent
 from ..agent.mall import MallAgent
 from ..agent.browser import BrowserAgent
 from ..agent.search import SearchAgent
+from ..agent.credential import CredentialAgent
 
 
 # =========================================================
@@ -17,6 +18,7 @@ def build_registry(config) -> dict:
         "mall":       MallAgent(config),
         "browser":    BrowserAgent(config),
         "search":     SearchAgent(config),
+        "credential": CredentialAgent(config),
     }
 
 
