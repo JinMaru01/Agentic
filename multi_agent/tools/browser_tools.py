@@ -14,22 +14,23 @@ Prerequisites
 from __future__ import annotations
 
 import atexit
+import threading
 
 from langchain_core.tools import tool
 
 # ---------------------------------------------------------------------------
-# Browser session singleton
+# Per-thread browser session
 # ---------------------------------------------------------------------------
+# sync_playwright creates its own internal event loop. Using a module-level
+# global causes "cannot switch to a different thread" errors when Playwright
+# is started in one thread and later accessed from another (e.g. asyncio's
+# thread pool). threading.local() gives each thread its own isolated session.
 
-_playwright = None
-_browser    = None
-_page       = None
+_local = threading.local()
 
 
 def _get_page():
-    """Return the shared page, starting Playwright on first call."""
-    global _playwright, _browser, _page
-
+    """Return this thread's Playwright page, starting a session if needed."""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError as exc:
@@ -37,27 +38,32 @@ def _get_page():
             "playwright is not installed. Run: pip install playwright && playwright install chromium"
         ) from exc
 
-    if _playwright is None:
-        _playwright = sync_playwright().start()
+    pw = getattr(_local, "playwright", None)
+    if pw is None:
+        _local.playwright = sync_playwright().start()
+        pw = _local.playwright
 
-    if _browser is None or not _browser.is_connected():
-        _browser = _playwright.chromium.launch(headless=True)
-        _page    = _browser.new_page()
-    elif _page is None or _page.is_closed():
-        _page = _browser.new_page()
+    browser = getattr(_local, "browser", None)
+    if browser is None or not browser.is_connected():
+        _local.browser = pw.chromium.launch(headless=True)
+        _local.page    = _local.browser.new_page()
+    elif getattr(_local, "page", None) is None or _local.page.is_closed():
+        _local.page = _local.browser.new_page()
 
-    return _page
+    return _local.page
 
 
 def _cleanup() -> None:
-    global _playwright, _browser, _page
     try:
-        if _page and not _page.is_closed():
-            _page.close()
-        if _browser:
-            _browser.close()
-        if _playwright:
-            _playwright.stop()
+        page = getattr(_local, "page", None)
+        if page and not page.is_closed():
+            page.close()
+        browser = getattr(_local, "browser", None)
+        if browser:
+            browser.close()
+        pw = getattr(_local, "playwright", None)
+        if pw:
+            pw.stop()
     except Exception:
         pass
 

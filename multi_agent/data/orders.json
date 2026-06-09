@@ -1,0 +1,41 @@
+[
+  {
+    "status": "confirmed",
+    "store": "Salad Stop",
+    "item": "Caesar Salad",
+    "price": 9,
+    "currency": "USD",
+    "quantity": 5,
+    "subtotal": 45.0,
+    "tax": 4.05,
+    "grand_total": 49.05,
+    "order_id": "ORD-83587B89",
+    "placed_at": "2026-06-09T02:37:30.604402+00:00"
+  },
+  {
+    "status": "confirmed",
+    "store": "Sandwich Club",
+    "item": "Tuna Sandwich",
+    "price": 8,
+    "currency": "USD",
+    "quantity": 5,
+    "subtotal": 40.0,
+    "tax": 3.6,
+    "grand_total": 43.6,
+    "order_id": "ORD-D84F66C3",
+    "placed_at": "2026-06-09T02:55:39.226416+00:00"
+  },
+  {
+    "status": "confirmed",
+    "store": "Salad Stop",
+    "item": "Fruit Salad",
+    "price": 7,
+    "currency": "USD",
+    "quantity": 20,
+    "order_id": "ORD-0FA13554",
+    "subtotal": 140,
+    "tax": 12.6,
+    "grand_total": 152.6,
+    "placed_at": "2026-06-09T03:00:50.114752+00:00"
+  }
+]

@@ -37,6 +37,7 @@ Flow:
                         └─────────────┘
 """
 
+import asyncio
 import json
 from typing import TypedDict, Annotated
 
@@ -291,20 +292,36 @@ def mall_node(state: AgentState) -> AgentState:
         return {**state, "result": {}, "error": str(e)}
 
 
-def browser_node(state: AgentState) -> AgentState:
-    """Runs the Browser Agent for website navigation and interaction tasks."""
+async def browser_node(state: AgentState) -> AgentState:
+    """Runs the Browser Agent for website navigation and interaction tasks.
+
+    Uses run_in_executor so sync_playwright never touches the asyncio event
+    loop thread, which would cause 'cannot switch to a different thread' errors.
+    """
     try:
-        result = AGENTS["browser"].run(state["query"], state.get("history", []))
+        loop   = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: AGENTS["browser"].run(state["query"], state.get("history", [])),
+        )
         return {**state, "result": result, "error": "", "last_agent": "browser"}
     except Exception as e:
         logger.error(f"[browser_node] {e}")
         return {**state, "result": {}, "error": str(e)}
 
 
-def search_node(state: AgentState) -> AgentState:
-    """Runs the Search Agent for AI news, web search, and knowledge queries."""
+async def search_node(state: AgentState) -> AgentState:
+    """Runs the Search Agent for AI news, web search, and knowledge queries.
+
+    Runs in a thread pool so any browser tool calls within the search agent
+    (fetch_article / browse_website) never touch the asyncio event loop thread.
+    """
     try:
-        result = AGENTS["search"].run(state["query"], state.get("history", []))
+        loop   = asyncio.get_event_loop()
+        result = await loop.run_in_executor(
+            None,
+            lambda: AGENTS["search"].run(state["query"], state.get("history", [])),
+        )
         return {**state, "result": result, "error": "", "last_agent": "search"}
     except Exception as e:
         logger.error(f"[search_node] {e}")

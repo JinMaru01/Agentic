@@ -25,7 +25,8 @@ router = APIRouter(prefix="/api")
 # Build the LangGraph graph once at import time
 _graph = build_graph()
 
-_AGENT_NODES = {"calculator", "mall", "browser", "search"}
+_AGENT_NODES    = {"calculator", "mall", "browser", "search"}
+_EXCLUDED_NODES = {"orchestrator"}  # LLM calls in these nodes must not be streamed to the user
 
 
 # =========================================================
@@ -265,9 +266,10 @@ async def chat_stream(request: ChatRequest):
     )
 
     async def generate():
-        collected: list[str] = []
-        final_state: dict    = {}
-        total_requested      = False
+        collected: list[str]   = []
+        final_state: dict      = {}
+        total_requested        = False
+        pending_tool_calls: dict = {}  # run_id → {name, args_str}
 
         try:
             agent_label = agent_key.capitalize() if agent_key not in ("fallback", "") else "Auto"
@@ -277,18 +279,49 @@ async def chat_stream(request: ChatRequest):
                 kind = event.get("event", "")
                 node = event.get("metadata", {}).get("langgraph_node", "")
 
-                if kind == "on_chat_model_stream" and node in _AGENT_NODES:
-                    chunk         = event["data"]["chunk"]
-                    text          = chunk.content if hasattr(chunk, "content") else ""
-                    has_tool_call = bool(getattr(chunk, "tool_call_chunks", None))
+                if kind == "on_chat_model_stream" and node not in _EXCLUDED_NODES:
+                    chunk = event["data"]["chunk"]
+                    text  = chunk.content if hasattr(chunk, "content") else ""
 
-                    if text and not has_tool_call:
+                    if text:
                         if "[TOTAL_REQUESTED]" in text:
                             total_requested = True
                             text = text.replace("[TOTAL_REQUESTED]", "")
-                        collected.append(text)
                         if text:
+                            collected.append(text)
                             yield f"data: {json.dumps({'token': text})}\n\n"
+
+                elif kind == "on_tool_start":
+                    run_id     = event.get("run_id", "")
+                    tool_name  = event.get("name", "")
+                    tool_input = event.get("data", {}).get("input", {})
+                    if isinstance(tool_input, dict):
+                        args_str = ", ".join(
+                            f"{k}={json.dumps(v)}" for k, v in tool_input.items()
+                        )
+                    else:
+                        args_str = str(tool_input)
+                    pending_tool_calls[run_id] = {"name": tool_name, "args_str": args_str}
+
+                elif kind == "on_tool_end":
+                    run_id  = event.get("run_id", "")
+                    output  = event.get("data", {}).get("output", "")
+                    pending = pending_tool_calls.pop(run_id, {})
+
+                    tool_name = pending.get("name") or event.get("name", "tool")
+                    args_str  = pending.get("args_str", "")
+
+                    if hasattr(output, "content"):
+                        result_str = str(output.content)
+                    elif isinstance(output, dict):
+                        result_str = json.dumps(output)
+                    else:
+                        result_str = str(output)
+                    result_str = result_str.strip()
+
+                    text = f"\n> **`{tool_name}`**({args_str}) → `{result_str}`\n"
+                    collected.append(text)
+                    yield f"data: {json.dumps({'token': text})}\n\n"
 
                 elif kind == "on_chain_end" and event.get("name") == "LangGraph":
                     output = event.get("data", {}).get("output", {})

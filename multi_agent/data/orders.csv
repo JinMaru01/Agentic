@@ -1,0 +1,4 @@
+order_id,store,item,quantity,price,currency,subtotal,tax,grand_total,status,placed_at
+ORD-83587B89,Salad Stop,Caesar Salad,5,9,USD,45.0,4.05,49.05,confirmed,2026-06-09T02:37:30.604402+00:00
+ORD-D84F66C3,Sandwich Club,Tuna Sandwich,5,8,USD,40.0,3.6,43.6,confirmed,2026-06-09T02:55:39.226416+00:00
+ORD-0FA13554,Salad Stop,Fruit Salad,20,7,USD,140,12.6,152.6,confirmed,2026-06-09T03:00:50.114752+00:00

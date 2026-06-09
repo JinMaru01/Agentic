@@ -13,14 +13,29 @@ _ORDERS_DIR = Path(__file__).parent.parent / "data"
 _ORDERS_JSON = _ORDERS_DIR / "orders.json"
 _ORDERS_CSV = _ORDERS_DIR / "orders.csv"
 
-_CSV_FIELDS = ["order_id", "store", "item", "quantity", "price", "currency", "status", "placed_at"]
+_TAX_RATE   = 0.09
+_CSV_FIELDS = [
+    "order_id", "store", "item", "quantity", "price", "currency",
+    "subtotal", "tax", "grand_total",
+    "status", "placed_at",
+]
 
 
 def _save_order(order: dict) -> None:
     """Append a confirmed order to orders.json and orders.csv."""
     _ORDERS_DIR.mkdir(parents=True, exist_ok=True)
 
-    record = {**order, "placed_at": datetime.now(timezone.utc).isoformat()}
+    subtotal    = round(order["price"] * order["quantity"], 2)
+    tax         = round(subtotal * _TAX_RATE, 2)
+    grand_total = round(subtotal + tax, 2)
+
+    record = {
+        **order,
+        "subtotal":    subtotal,
+        "tax":         tax,
+        "grand_total": grand_total,
+        "placed_at":   datetime.now(timezone.utc).isoformat(),
+    }
 
     # --- JSON ---
     existing: list = []

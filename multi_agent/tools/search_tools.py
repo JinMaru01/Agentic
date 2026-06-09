@@ -106,11 +106,9 @@ def browse_website(task: str) -> str:
     reading across multiple pages — not just a single URL fetch.
     task: plain-English description, e.g. 'Go to https://openai.com, find the latest blog post, and summarise it.'
     """
-    from config import AgentConfig
-    from ..agent.browser import BrowserAgent
+    from ..graph.workflow import AGENTS
 
-    agent  = BrowserAgent(AgentConfig())
-    result = agent.run(task)
+    result = AGENTS["browser"].run(task)
 
     for msg in reversed(result.get("messages", [])):
         if type(msg).__name__ == "AIMessage" and msg.content:
